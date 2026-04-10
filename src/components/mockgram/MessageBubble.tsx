@@ -1,4 +1,6 @@
 import { Fragment, useMemo, useState, type ReactNode } from "react";
+
+import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { Message, users } from "@/data/mockData";
 import { Check, CheckCheck } from "lucide-react";
@@ -80,6 +82,7 @@ function CopyableCode({ text }: { text: string }) {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      toast("Text copied to clipboard");
       window.setTimeout(() => setCopied(false), 1400);
     } catch {
       setCopied(false);
