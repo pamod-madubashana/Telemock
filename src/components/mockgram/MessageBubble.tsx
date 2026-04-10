@@ -13,23 +13,62 @@ function renderTextWithCommands(
   text: string,
   onCommandClick?: (cmd: string) => void,
 ) {
-  const parts = text.split(/(\/[a-zA-Z_][a-zA-Z0-9_]*(?:@\w+)?)/g);
-  return parts.map((part, i) => {
-    if (/^\/[a-zA-Z_][a-zA-Z0-9_]*(?:@\w+)?$/.test(part)) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  return text.split(urlRegex).flatMap((segment, segmentIndex) => {
+    if (/^https?:\/\//.test(segment)) {
       return (
-        <span
-          key={i}
-          className="text-primary font-medium cursor-pointer hover:underline"
-          onClick={(e) => {
-            e.stopPropagation();
-            onCommandClick?.(part);
-          }}
+        <a
+          key={`url-${segmentIndex}`}
+          href={segment}
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary font-medium hover:underline"
         >
-          {part}
-        </span>
+          {segment}
+        </a>
       );
     }
-    return part;
+
+    const commandRegex = /(^|[\s(])\/[a-zA-Z_][a-zA-Z0-9_]*(?:@\w+)?/g;
+    const parts: Array<React.ReactNode> = [];
+    let lastIndex = 0;
+
+    for (const match of segment.matchAll(commandRegex)) {
+      const fullMatch = match[0];
+      const prefix = match[1] ?? "";
+      const command = fullMatch.slice(prefix.length);
+      const matchIndex = match.index ?? 0;
+
+      if (matchIndex > lastIndex) {
+        parts.push(segment.slice(lastIndex, matchIndex));
+      }
+
+      if (prefix) {
+        parts.push(prefix);
+      }
+
+      parts.push(
+        <span
+          key={`cmd-${segmentIndex}-${matchIndex}`}
+          className="cursor-pointer font-medium text-primary hover:underline"
+          onClick={(e) => {
+            e.stopPropagation();
+            onCommandClick?.(command);
+          }}
+        >
+          {command}
+        </span>,
+      );
+
+      lastIndex = matchIndex + fullMatch.length;
+    }
+
+    if (lastIndex < segment.length) {
+      parts.push(segment.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : segment;
   });
 }
 
