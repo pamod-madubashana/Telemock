@@ -15,15 +15,25 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
   const [text, setText] = useState("");
   const [showCommands, setShowCommands] = useState(false);
   const [filteredCommands, setFilteredCommands] = useState<BotCommand[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!commands?.length) { setShowCommands(false); return; }
-    if (text === '/') {
+    inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!commands?.length) {
+      setShowCommands(false);
+      return;
+    }
+    if (text === "/") {
       setFilteredCommands(commands);
       setShowCommands(true);
-    } else if (text.startsWith('/') && text.length > 1 && !text.includes(' ')) {
+    } else if (text.startsWith("/") && text.length > 1 && !text.includes(" ")) {
       const q = text.slice(1).toLowerCase();
-      const matched = commands.filter(c => c.command.toLowerCase().includes(q));
+      const matched = commands.filter((c) =>
+        c.command.toLowerCase().includes(q),
+      );
       setFilteredCommands(matched);
       setShowCommands(matched.length > 0);
     } else {
@@ -39,17 +49,17 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
   };
 
   const handleSelectCommand = (cmd: string) => {
-    onSend('/' + cmd);
+    onSend("/" + cmd);
     setText("");
     setShowCommands(false);
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-    if (e.key === 'Escape') setShowCommands(false);
+    if (e.key === "Escape") setShowCommands(false);
   };
 
   const hasText = text.trim().length > 0;
@@ -60,14 +70,18 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
       {/* Command menu */}
       {showCommands && filteredCommands.length > 0 && (
         <div className="absolute bottom-full left-0 right-0 bg-card border-t border-border shadow-lg max-h-64 overflow-y-auto scrollbar-thin z-50">
-          {filteredCommands.map(cmd => (
+          {filteredCommands.map((cmd) => (
             <button
               key={cmd.command}
               onClick={() => handleSelectCommand(cmd.command)}
               className="w-full flex items-center gap-3 px-5 py-2.5 hover:bg-secondary/60 transition text-left"
             >
-              <span className="text-primary text-sm font-medium flex-shrink-0">/{cmd.command}</span>
-              <span className="text-xs text-muted-foreground truncate">{cmd.description}</span>
+              <span className="text-primary text-sm font-medium flex-shrink-0">
+                /{cmd.command}
+              </span>
+              <span className="text-xs text-muted-foreground truncate">
+                {cmd.description}
+              </span>
             </button>
           ))}
         </div>
@@ -77,7 +91,10 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
         {/* Menu button */}
         {hasCommands && (
           <button
-            onClick={() => { setShowCommands(prev => !prev); if (!showCommands) setFilteredCommands(commands!); }}
+            onClick={() => {
+              setShowCommands((prev) => !prev);
+              if (!showCommands) setFilteredCommands(commands!);
+            }}
             className="flex-shrink-0 px-3.5 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition"
           >
             Menu
@@ -85,12 +102,16 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
         )}
 
         {/* Attach */}
-        <button className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition" title="Attach">
+        <button
+          className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition"
+          title="Attach"
+        >
           <Paperclip className="w-5 h-5" />
         </button>
 
         {/* Input */}
         <input
+          ref={inputRef}
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -100,7 +121,10 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
         />
 
         {/* Right icons */}
-        <button className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition" title="Emoji">
+        <button
+          className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition"
+          title="Emoji"
+        >
           <Smile className="w-5 h-5" />
         </button>
         {hasText ? (
@@ -112,7 +136,10 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
             <Send className="w-5 h-5" />
           </button>
         ) : (
-          <button className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition" title="Voice">
+          <button
+            className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition"
+            title="Voice"
+          >
             <Mic className="w-5 h-5" />
           </button>
         )}
