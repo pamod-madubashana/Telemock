@@ -81,6 +81,7 @@ export const chats: Chat[] = [
     type: 'private',
     title: 'MockBot',
     subtitle: 'bot',
+    profileId: '7814203112',
     initials: 'MB',
     color: 'hsl(200, 80%, 45%)',
     lastMessage: 'Hello from offline simulator',
