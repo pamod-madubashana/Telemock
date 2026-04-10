@@ -37,6 +37,34 @@ const botFatherCommands: BotCommand[] = [
   { command: "deletegame", description: "delete an existing game" },
 ];
 
+function MockBotIntro({ onStart }: { onStart: () => void }) {
+  return (
+    <div className="flex h-full flex-col justify-end pb-6">
+      <div className="mx-auto mb-6 w-full max-w-sm rounded-2xl border border-white/10 bg-[#1f2937]/92 p-4 text-sm text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
+        <p className="text-base font-semibold text-white">
+          What can this bot do?
+        </p>
+        <div className="mt-2 space-y-1 text-sm leading-6 text-white/85">
+          <p>- Test commands and offline replies.</p>
+          <p>- Preview formatted messages and links.</p>
+          <p>- Simulate bot flows before using real APIs.</p>
+        </div>
+        <p className="mt-4 text-sm leading-6 text-white/78">
+          Start the bot to open the chat and begin sending commands.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={onStart}
+        className="mx-auto flex h-12 w-full max-w-[96%] items-center justify-center rounded-2xl border border-primary/20 bg-[#1b1b1d] text-sm font-semibold uppercase tracking-[0.18em] text-primary transition hover:bg-[#202124] hover:text-primary-foreground"
+      >
+        Start
+      </button>
+    </div>
+  );
+}
+
 interface ChatViewProps {
   chat: Chat | null;
   messages: Message[];
@@ -73,6 +101,8 @@ export function ChatView({
 
   const isGroup = chat.type === "group";
   const isChannel = chat.type === "channel";
+  const isMockBot = chat.id === "chat-1";
+  const showMockBotIntro = isMockBot && messages.length === 0;
 
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-chat-bg">
@@ -111,21 +141,25 @@ export function ChatView({
         ref={scrollRef}
         className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3 scroll-smooth"
       >
-        <div className="w-full">
-          {messages.map((msg) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              isOwnMessage={msg.senderId === "user-1"}
-              showSender={isGroup || isChannel}
-              onCommandClick={(cmd) => onSend(cmd)}
-            />
-          ))}
-        </div>
+        {showMockBotIntro ? (
+          <MockBotIntro onStart={() => onSend("/start")} />
+        ) : (
+          <div className="w-full">
+            {messages.map((msg) => (
+              <MessageBubble
+                key={msg.id}
+                message={msg}
+                isOwnMessage={msg.senderId === "user-1"}
+                showSender={isGroup || isChannel}
+                onCommandClick={(cmd) => onSend(cmd)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Composer */}
-      {!isChannel && (
+      {!isChannel && !showMockBotIntro && (
         <MessageComposer
           onSend={onSend}
           commands={

@@ -1,5 +1,32 @@
-import { Paperclip, Smile, Mic, Send, Menu } from "lucide-react";
-import { useState, KeyboardEvent, useEffect, useRef } from "react";
+import {
+  Bold,
+  CalendarDays,
+  Code2,
+  Italic,
+  Link2,
+  Menu,
+  Mic,
+  Paperclip,
+  Quote,
+  Send,
+  Smile,
+  Strikethrough,
+  Underline,
+} from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type KeyboardEvent,
+} from "react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export interface BotCommand {
   command: string;
@@ -11,11 +38,59 @@ interface MessageComposerProps {
   commands?: BotCommand[];
 }
 
+type FormattingAction =
+  | "bold"
+  | "italic"
+  | "underline"
+  | "strikethrough"
+  | "quote"
+  | "mono"
+  | "spoiler"
+  | "date"
+  | "link";
+
+const formattingOptions: Array<{
+  action: FormattingAction;
+  label: string;
+  Icon: ComponentType<{ className?: string }>;
+}> = [
+  { action: "bold", label: "Bold", Icon: Bold },
+  { action: "italic", label: "Italic", Icon: Italic },
+  { action: "underline", label: "Underline", Icon: Underline },
+  { action: "strikethrough", label: "Strikethrough", Icon: Strikethrough },
+  { action: "quote", label: "Quote", Icon: Quote },
+  { action: "mono", label: "Mono", Icon: Code2 },
+  { action: "spoiler", label: "Spoiler", Icon: EyeOffGlyph },
+  { action: "date", label: "Date", Icon: CalendarDays },
+  { action: "link", label: "Create Link", Icon: Link2 },
+];
+
+function EyeOffGlyph({ className }: { className?: string }) {
+  return <span className={className}>#</span>;
+}
+
+function FormattingGlyph({ className }: { className?: string }) {
+  return (
+    <span className={className}>
+      <span className="flex h-full w-full flex-col items-center justify-center gap-[3px]">
+        <span className="h-[1.5px] w-4 rounded-full bg-current" />
+        <span className="h-[1.5px] w-3 rounded-full bg-current" />
+        <span className="h-[1.5px] w-4 rounded-full bg-current" />
+      </span>
+    </span>
+  );
+}
+
+function escapeAttribute(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
 export function MessageComposer({ onSend, commands }: MessageComposerProps) {
   const [text, setText] = useState("");
   const [showCommands, setShowCommands] = useState(false);
   const [filteredCommands, setFilteredCommands] = useState<BotCommand[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const selectionRef = useRef({ start: 0, end: 0 });
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -52,6 +127,95 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
     onSend("/" + cmd);
     setText("");
     setShowCommands(false);
+  };
+
+  const syncSelection = () => {
+    const input = inputRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    selectionRef.current = {
+      start: input.selectionStart ?? 0,
+      end: input.selectionEnd ?? 0,
+    };
+  };
+
+  const applyFormatting = (action: FormattingAction) => {
+    const input = inputRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    const start = selectionRef.current.start;
+    const end = selectionRef.current.end;
+    const selectedText = text.slice(start, end);
+
+    let inserted = "";
+    let cursorStart = 0;
+    let cursorEnd = 0;
+
+    switch (action) {
+      case "bold":
+        inserted = `<b>${selectedText || "bold text"}</b>`;
+        break;
+      case "italic":
+        inserted = `<i>${selectedText || "italic text"}</i>`;
+        break;
+      case "underline":
+        inserted = `<u>${selectedText || "underlined text"}</u>`;
+        break;
+      case "strikethrough":
+        inserted = `<s>${selectedText || "strikethrough text"}</s>`;
+        break;
+      case "quote":
+        inserted = `<blockquote>${selectedText || "quoted text"}</blockquote>`;
+        break;
+      case "mono":
+        inserted = `<code>${selectedText || "monospace"}</code>`;
+        break;
+      case "spoiler":
+        inserted = `<tg-spoiler>${selectedText || "spoiler"}</tg-spoiler>`;
+        break;
+      case "date": {
+        const displayText = selectedText || new Date().toLocaleDateString();
+        inserted = `<time datetime="${new Date().toISOString()}">${displayText}</time>`;
+        break;
+      }
+      case "link": {
+        const url = window.prompt("Enter the link URL", "https://");
+
+        if (!url) {
+          return;
+        }
+
+        const label = selectedText || url;
+        inserted = `<a href="${escapeAttribute(url)}">${label}</a>`;
+        break;
+      }
+    }
+
+    const nextText = `${text.slice(0, start)}${inserted}${text.slice(end)}`;
+    const replacementStart = text.slice(0, start).length;
+    const replacementEnd = replacementStart + inserted.length;
+
+    if (selectedText) {
+      cursorStart = replacementEnd;
+      cursorEnd = replacementEnd;
+    } else {
+      cursorStart = replacementStart + inserted.indexOf(">") + 1;
+      cursorEnd = replacementStart + inserted.lastIndexOf("<");
+    }
+
+    setText(nextText);
+
+    requestAnimationFrame(() => {
+      input.focus();
+      input.setSelectionRange(cursorStart, cursorEnd);
+      selectionRef.current = { start: cursorStart, end: cursorEnd };
+    });
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -109,13 +273,41 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
           <Paperclip className="w-5 h-5" />
         </button>
 
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition"
+              title="Formatting"
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+            >
+              <FormattingGlyph className="block h-5 w-5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-52">
+            {formattingOptions.map(({ action, label, Icon }) => (
+              <DropdownMenuItem
+                key={action}
+                className="gap-3"
+                onSelect={() => applyFormatting(action)}
+              >
+                <Icon className="h-4 w-4 text-muted-foreground" />
+                <span>{label}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         {/* Input */}
         <input
           ref={inputRef}
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onClick={syncSelection}
           onKeyDown={handleKeyDown}
+          onKeyUp={syncSelection}
+          onSelect={syncSelection}
           placeholder="Message"
           className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none min-w-0"
         />

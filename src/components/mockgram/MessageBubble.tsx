@@ -1,3 +1,4 @@
+import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Message, users } from "@/data/mockData";
 import { Check, CheckCheck } from "lucide-react";
@@ -31,7 +32,7 @@ function renderTextWithCommands(
     }
 
     const commandRegex = /(^|[\s(])\/[a-zA-Z_][a-zA-Z0-9_]*(?:@\w+)?/g;
-    const parts: Array<React.ReactNode> = [];
+    const parts: Array<ReactNode> = [];
     let lastIndex = 0;
 
     for (const match of segment.matchAll(commandRegex)) {
@@ -70,6 +71,158 @@ function renderTextWithCommands(
 
     return parts.length > 0 ? parts : segment;
   });
+}
+
+function CopyableCode({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="inline-flex max-w-full rounded-md bg-black/20 px-1.5 py-0.5 text-left font-mono text-[12.5px] text-foreground transition hover:bg-black/30 whitespace-pre-wrap break-all"
+      title={copied ? "Copied" : "Click to copy"}
+    >
+      {text}
+    </button>
+  );
+}
+
+function SpoilerText({ children }: { children: ReactNode }) {
+  const [revealed, setRevealed] = useState(false);
+
+  return (
+    <button
+      type="button"
+      onClick={() => setRevealed((value) => !value)}
+      className={cn(
+        "inline rounded-[6px] px-1 py-0.5 transition",
+        revealed
+          ? "bg-white/5 text-inherit"
+          : "select-none bg-white/20 text-transparent shadow-[inset_0_0_0_999px_rgba(255,255,255,0.08)]",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function renderRichNode(
+  node: ChildNode,
+  key: string,
+  onCommandClick?: (cmd: string) => void,
+): ReactNode {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return (
+      <Fragment key={key}>
+        {renderTextWithCommands(node.textContent ?? "", onCommandClick)}
+      </Fragment>
+    );
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return null;
+  }
+
+  const element = node as HTMLElement;
+  const tag = element.tagName.toLowerCase();
+  const children = Array.from(element.childNodes).map((child, index) =>
+    renderRichNode(child, `${key}-${index}`, onCommandClick),
+  );
+
+  switch (tag) {
+    case "b":
+    case "strong":
+      return <strong key={key}>{children}</strong>;
+    case "i":
+    case "em":
+      return <em key={key}>{children}</em>;
+    case "u":
+      return (
+        <span key={key} className="underline underline-offset-2">
+          {children}
+        </span>
+      );
+    case "s":
+    case "del":
+      return (
+        <span key={key} className="line-through opacity-80">
+          {children}
+        </span>
+      );
+    case "blockquote":
+      return (
+        <blockquote
+          key={key}
+          className="my-1 block border-l-2 border-primary/60 pl-3 text-foreground/90"
+        >
+          {children}
+        </blockquote>
+      );
+    case "code":
+      return <CopyableCode key={key} text={element.textContent ?? ""} />;
+    case "tg-spoiler":
+      return <SpoilerText key={key}>{children}</SpoilerText>;
+    case "a": {
+      const href = element.getAttribute("href") ?? element.textContent ?? "#";
+      return (
+        <a
+          key={key}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-primary hover:underline"
+        >
+          {children.length > 0 ? children : href}
+        </a>
+      );
+    }
+    case "time":
+      return (
+        <time
+          key={key}
+          dateTime={element.getAttribute("datetime") ?? undefined}
+          className="inline-flex rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"
+        >
+          {children}
+        </time>
+      );
+    case "br":
+      return <br key={key} />;
+    default:
+      return <Fragment key={key}>{children}</Fragment>;
+  }
+}
+
+function FormattedMessageText({
+  text,
+  onCommandClick,
+}: {
+  text: string;
+  onCommandClick?: (cmd: string) => void;
+}) {
+  const content = useMemo(() => {
+    const doc = new DOMParser().parseFromString(
+      `<body>${text}</body>`,
+      "text/html",
+    );
+
+    return Array.from(doc.body.childNodes).map((node, index) =>
+      renderRichNode(node, `node-${index}`, onCommandClick),
+    );
+  }, [text, onCommandClick]);
+
+  return <>{content}</>;
 }
 
 export function MessageBubble({
@@ -128,9 +281,12 @@ export function MessageBubble({
             </p>
           </div>
         )}
-        <p className="text-[13.5px] leading-[1.4] whitespace-pre-wrap break-words">
-          {renderTextWithCommands(message.text, onCommandClick)}
-        </p>
+        <div className="text-[13.5px] leading-[1.4] whitespace-pre-wrap break-words">
+          <FormattedMessageText
+            text={message.text}
+            onCommandClick={onCommandClick}
+          />
+        </div>
         <div
           className={cn(
             "flex items-center justify-end gap-1 mt-0.5",
