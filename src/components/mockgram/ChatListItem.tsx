@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Chat } from "@/data/mockData";
 import { ChatAvatar } from "./Avatar";
+import { ChatTitle } from "./ChatTitle";
 
 interface ChatListItemProps {
   chat: Chat;
@@ -18,12 +19,15 @@ export function ChatListItem({ chat, isActive, onClick, unreadCount }: ChatListI
         isActive ? "bg-sidebar-active" : "hover:bg-sidebar-hover"
       )}
     >
-      <ChatAvatar initials={chat.initials} color={chat.color} online={chat.online} />
+      <ChatAvatar initials={chat.initials} color={chat.color} avatar={chat.avatar} online={chat.online} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
-          <span className={cn("font-medium text-sm truncate", isActive && "text-primary")}>
-            {chat.title}
-          </span>
+          <ChatTitle
+            title={chat.title}
+            verified={chat.verified}
+            className={cn("font-medium text-sm min-w-0", isActive && "text-primary")}
+            badgeClassName="h-3.5 w-3.5"
+          />
           <span className="text-[11px] text-timestamp flex-shrink-0 ml-2">
             {chat.lastMessageTime}
           </span>

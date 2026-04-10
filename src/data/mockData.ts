@@ -1,3 +1,5 @@
+import botFatherAvatar from "@/assets/botfather.png";
+
 export interface User {
   id: string;
   name: string;
@@ -12,6 +14,10 @@ export interface Chat {
   type: 'private' | 'group' | 'channel';
   title: string;
   subtitle?: string;
+  avatar?: string;
+  verified?: boolean;
+  profileSubtitle?: string;
+  profileId?: string;
   initials: string;
   color: string;
   lastMessage?: string;
@@ -46,7 +52,7 @@ export const currentUser: User = {
 export const users: Record<string, User> = {
   'user-1': currentUser,
   'bot-1': { id: 'bot-1', name: 'MockBot', isBot: true, initials: 'MB', color: 'hsl(200, 80%, 45%)' },
-  'botfather': { id: 'botfather', name: 'BotFather', isBot: true, initials: 'BF', color: 'hsl(200, 85%, 50%)' },
+  'botfather': { id: 'botfather', name: 'BotFather', isBot: true, avatar: botFatherAvatar, initials: 'BF', color: 'hsl(200, 85%, 50%)' },
   'user-2': { id: 'user-2', name: 'Alice', isBot: false, initials: 'A', color: 'hsl(340, 65%, 55%)' },
   'user-3': { id: 'user-3', name: 'Bob', isBot: false, initials: 'B', color: 'hsl(30, 70%, 50%)' },
 };
@@ -57,13 +63,17 @@ export const chats: Chat[] = [
     type: 'private',
     title: 'BotFather',
     subtitle: 'bot',
+    avatar: botFatherAvatar,
+    verified: true,
+    profileSubtitle: '8,099,021 monthly users',
+    profileId: '93372553',
     initials: 'BF',
     color: 'hsl(200, 85%, 50%)',
     lastMessage: 'Use /newbot to create a new bot',
     lastMessageTime: 'Now',
     unreadCount: 1,
     online: true,
-    description: 'The official Mockgram BotFather. Create and manage your fake bots for local testing.',
+    description: 'BotFather is the one bot to rule them all. Use it to create new bot accounts and manage your existing bots.',
     username: 'BotFather',
   },
   {

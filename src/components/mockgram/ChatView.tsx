@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Chat, Message } from "@/data/mockData";
 import { ChatAvatar } from "./Avatar";
+import { ChatTitle } from "./ChatTitle";
 import { MessageBubble } from "./MessageBubble";
 import { MessageComposer, BotCommand } from "./MessageComposer";
 import { MessageSquare } from "lucide-react";
@@ -80,13 +81,17 @@ export function ChatView({
         <ChatAvatar
           initials={chat.initials}
           color={chat.color}
+          avatar={chat.avatar}
           size="sm"
           online={chat.online}
         />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">
-            {chat.title}
-          </p>
+          <ChatTitle
+            title={chat.title}
+            verified={chat.verified}
+            className="text-sm font-semibold text-foreground min-w-0"
+            badgeClassName="h-3.5 w-3.5"
+          />
           <p className="text-xs text-muted-foreground">
             {chat.subtitle ||
               (isChannel
