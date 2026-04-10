@@ -37,7 +37,9 @@ function InfoRow({
         "flex items-center gap-4 px-6 py-3 hover:bg-secondary/50 transition"
       }
     >
-      <Icon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+      <div className="flex w-8 shrink-0 items-center justify-center">
+        <Icon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+      </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-foreground">{label}</p>
         {sublabel && (
@@ -76,7 +78,7 @@ function ActionButton({
 
 function IdGlyph() {
   return (
-    <span className="flex h-5 w-8 items-center justify-center rounded-md border border-white/30 text-[10px] font-semibold tracking-[0.2em] text-white/75">
+    <span className="flex h-5 w-8 items-center justify-center rounded-md border-2 border-white/30 text-[10px] font-semibold tracking-[0.2em] text-white/75">
       ID
     </span>
   );
