@@ -1,165 +1,209 @@
 # AGENTS.md
+
 ## Purpose
-This repository is a Vite + React + TypeScript frontend wrapped by Tauri, with a Rust backend in `src-tauri/`.
-Use this file as the working guide for coding agents in `E:\User\Documents\Repositories\projects\Telemock`.
 
-## Repo Layout
-- `src/`: React app source.
-- `src/components/mockgram/`: app-specific chat UI.
-- `src/components/ui/`: shadcn/Radix component wrappers.
-- `src/data/`: mock data and BotFather logic.
-- `src/test/`: Vitest tests and setup.
-- `src-tauri/`: Tauri app, Rust backend, and packaging config.
-- `src-tauri/src/lib.rs`: main Rust logic and Rust tests.
-- `src-tauri/tauri.conf.json`: desktop window/build config.
+This repository is a Vite + React + TypeScript frontend wrapped by Tauri, with the desktop/backend logic in Rust under `src-tauri/`.
+Use this file as the operating guide for coding agents working in `E:\User\Documents\Repositories\projects\Telemock`.
 
-## Tooling Summary
-- Package manager: `npm` (`package-lock.json` is present).
-- Frontend: React 18, TypeScript, Vite, Tailwind CSS.
-- UI libraries: Radix UI, shadcn-style components, `lucide-react`.
-- Frontend tests: Vitest, Testing Library, `@testing-library/jest-dom`.
-- Desktop shell: Tauri 2.
-- Rust stack: `axum`, `tokio`, `rusqlite`, `tower-http`.
+## Stack Summary
 
-## Commands
-### Install
-- `npm install`
-- `cargo fetch --manifest-path src-tauri/Cargo.toml`
+- Package manager: `npm`
+- Frontend: React 18, TypeScript, Vite, Tailwind CSS
+- UI libraries: Radix UI, shadcn-style wrappers, `lucide-react`
+- State/data: local React state plus mock data/state machines in `src/data/`
+- Frontend tests: Vitest, Testing Library, `@testing-library/jest-dom`, `jsdom`
+- Desktop shell: Tauri 2
+- Rust backend: `axum`, `tokio`, `rusqlite`, `tower-http`
 
-### Frontend Dev
-- `npm run dev` - starts Vite on port `3000`.
-- `npm run preview` - previews the production frontend build.
+## Repository Layout
 
-### Desktop Dev
-- `npm run tauri dev` - starts the Tauri app against the local Vite server.
-
-### Build
-- `npm run build` - production frontend build.
-- `npm run build:dev` - development-mode frontend build.
-- `npm run tauri build` - production desktop build.
-
-### Lint
-- `npm run lint`
-
-### Frontend Tests
-- `npm run test` - runs the full Vitest suite once.
-- `npx vitest` - watch mode.
-- `npx vitest run` - direct single-run Vitest command.
-- `npx vitest run src/test/example.test.ts` - run one test file.
-- `npx vitest run src/test/example.test.ts -t "should pass"` - run one named test.
-
-### Rust Tests
-- `cargo test --manifest-path src-tauri/Cargo.toml`
-- `cargo test --manifest-path src-tauri/Cargo.toml user_messages_enter_and_leave_the_update_queue -- --exact`
-- `cargo test --manifest-path src-tauri/Cargo.toml bot_messages_are_visible_in_the_ui_snapshot -- --exact`
-
-### Formatting
-- `npx prettier --write src/**/*.{ts,tsx,css}` - format React-side source.
-- `cargo fmt --manifest-path src-tauri/Cargo.toml` - format Rust code.
-
-## Preferred Agent Workflow
-- Default to `npm`, not `yarn`, `pnpm`, or `bun`.
-- Use `npx vitest run <file>` for focused frontend verification.
-- Use `cargo test --manifest-path src-tauri/Cargo.toml <name> -- --exact` for focused Rust verification.
-- Use `npm run tauri dev` for desktop-only bugs.
-- Do not edit generated output like `dist/`, `node_modules/`, or Tauri build artifacts.
+- `src/` - React app source
+- `src/pages/` - route-level screens such as `Index.tsx`
+- `src/components/mockgram/` - app-specific Telegram-style UI
+- `src/components/ui/` - shared shadcn/Radix wrappers
+- `src/data/` - mock chats, messages, BotFather logic, shared frontend models
+- `src/assets/` - frontend images such as avatars and badges
+- `src/test/` - Vitest tests and setup
+- `src/index.css` - global tokens, utilities, and animation styles
+- `src-tauri/src/lib.rs` - main Rust logic and Rust tests
+- `src-tauri/src/main.rs` - thin Tauri entrypoint
+- `src-tauri/tauri.conf.json` - desktop config
+- `src-tauri/icons/` - generated app icons; avoid hand-editing generated variants unless the task is specifically icon regeneration
 
 ## Rules Files
+
 - No `.cursor/rules/` directory was found.
 - No `.cursorrules` file was found.
 - No `.github/copilot-instructions.md` file was found.
-- There are currently no repo-specific Cursor or Copilot rules to merge into this file.
+- There are currently no repo-specific Cursor or Copilot rules to merge.
+
+## Install And Setup
+
+- `npm install`
+- `cargo fetch --manifest-path src-tauri/Cargo.toml`
+
+## Dev Commands
+
+### Frontend
+
+- `npm run dev` - start Vite dev server on port `3000`
+- `npm run preview` - preview the production frontend build
+
+### Desktop
+
+- `npm run tauri dev` - run the Tauri app against the local frontend dev server
+
+## Build Commands
+
+- `npm run build` - production frontend build
+- `npm run build:dev` - development-mode frontend build
+- `npm run tauri build` - production desktop build
+
+## Lint Commands
+
+- `npm run lint`
+
+## Frontend Test Commands
+
+- `npm run test` - run the full Vitest suite once
+- `npm run test -- --runInBand` - avoid unless diagnosing environment issues; default parallel run is preferred
+- `npx vitest` - watch mode
+- `npx vitest run` - direct single-run Vitest invocation
+- `npx vitest run src/test/example.test.ts` - run one test file
+- `npx vitest run src/test/example.test.ts -t "should pass"` - run one named frontend test
+
+## Rust Test Commands
+
+- `cargo test --manifest-path src-tauri/Cargo.toml` - run all Rust tests
+- `cargo test --manifest-path src-tauri/Cargo.toml user_messages_enter_and_leave_the_update_queue -- --exact` - run one named Rust test
+- `cargo test --manifest-path src-tauri/Cargo.toml bot_messages_are_visible_in_the_ui_snapshot -- --exact` - run one named Rust test
+
+## Formatting Commands
+
+- `npx prettier --write AGENTS.md src/**/*.{ts,tsx,css}` - format Markdown and frontend source
+- `cargo fmt --manifest-path src-tauri/Cargo.toml` - format Rust code
+
+## Preferred Agent Workflow
+
+- Default to `npm`; do not switch to `yarn`, `pnpm`, or `bun`.
+- Prefer focused verification over full-suite runs when the task is localized.
+- Use `npx vitest run <file>` for focused frontend verification.
+- Use `cargo test --manifest-path src-tauri/Cargo.toml <test_name> -- --exact` for focused Rust verification.
+- Use `npm run tauri dev` for desktop-only issues that depend on the shell.
+- Do not edit generated output such as `dist/`, `node_modules/`, or Tauri build artifacts.
+- If scripts, tooling, tests, or repo rules change, update this file in the same task.
 
 ## Frontend Code Style
+
 ### Imports
+
 - Put third-party imports first.
 - Use `@/` alias imports for modules under `src/`.
-- Use relative imports for sibling files in the same feature folder.
-- Keep import sections compact; add blank lines only when they improve readability.
-- Use `import type` when only a type is needed.
+- Use relative imports for sibling files inside the same feature folder.
+- Keep import blocks compact; add blank lines only when they improve readability.
+- Use `import type` when a symbol is only used as a type.
 
 ### Formatting
+
 - Follow Prettier formatting for TS, TSX, CSS, and Markdown.
 - Use double quotes in TS/TSX files.
 - Keep semicolons.
-- Let Prettier wrap dense JSX props, arrays, and long objects.
+- Let Prettier wrap long props, objects, and arrays.
+- Prefer ASCII unless the file already depends on Unicode characters for UI copy.
 
 ### React Patterns
+
 - Prefer function components.
 - Use named exports for reusable components.
-- Use default exports for route/page modules like `src/App.tsx` and `src/pages/Index.tsx`.
-- Define a local props interface close to the component.
-- Keep hooks at the top of the component.
+- Use default exports for route/page modules such as `src/App.tsx` and `src/pages/Index.tsx`.
+- Define prop interfaces close to the component that uses them.
+- Keep hooks at the top of the component body.
 - Use guard clauses for empty or invalid UI states.
-- Keep one-off render helpers local to the file.
+- Keep one-off helpers local to the file unless they are shared.
+- Favor small, composable presentational components over large mixed-responsibility files.
 
 ### Types
+
 - The repo is not fully strict (`strict: false`, `noImplicitAny: false`), but new code should still be explicit.
-- Add explicit types for exported APIs, props, shared data models, and state with non-obvious shape.
-- Prefer union types for discriminated state.
-- Prefer `Record<string, T>` when the code models a keyed object map.
-- Avoid `any` unless integration constraints make it unavoidable.
+- Add explicit types for exported APIs, props, shared models, and non-obvious state.
+- Prefer unions for discriminated state.
+- Prefer `Record<string, T>` when modeling keyed maps.
+- Avoid `any` unless integration constraints make it truly necessary.
 
 ### Naming
-- Components, interfaces, and type aliases: `PascalCase`.
-- Functions, variables, hooks, and helpers: `camelCase`.
-- Component files usually use `PascalCase.tsx`.
-- Utility and config files usually use lower-case names.
 
-### State and Data Flow
+- Components, interfaces, and type aliases: `PascalCase`
+- Functions, variables, hooks, and helpers: `camelCase`
+- React component files: usually `PascalCase.tsx`
+- Utility/config files: usually lowercase
+
+### State And Data Flow
+
 - Prefer local state with `useState`, `useCallback`, and `useEffect` for UI interactions.
-- Keep reusable mock or state-machine data in `src/data/`.
+- Keep reusable mock/state-machine data in `src/data/`.
 - Pass behavior down through typed props and callbacks.
-- Compute display-only values close to the render site unless reused widely.
+- Compute display-only values near the render site unless reused broadly.
+- Preserve the contract between frontend mock data and the Rust simulator when touching both.
 
 ### Styling
+
 - Use Tailwind utility classes for component styling.
-- Reuse CSS variables from `src/index.css` and tokens from `tailwind.config.ts`.
+- Reuse tokens from `src/index.css` and `tailwind.config.ts`.
 - Use `cn` from `@/lib/utils` for conditional classes.
 - Preserve existing shadcn/Radix composition in `src/components/ui/`.
-- Keep layout changes aligned with the existing Telegram-style interface unless a redesign is requested.
+- Keep layout changes aligned with the Telegram-style interface unless a redesign is explicitly requested.
 
 ### Error Handling
+
 - Use early returns for invalid states.
 - Do not silently swallow errors that affect behavior.
 - Surface readable user-facing failures when practical.
 - Handle rejected promises explicitly in async browser code.
 
 ### Frontend Testing
+
 - Frontend tests live under `src/test/`.
-- Shared setup is in `src/test/setup.ts`.
+- Shared test setup is in `src/test/setup.ts`.
 - Prefer descriptive `describe` and `it` names.
-- Add targeted tests near the changed behavior rather than broad snapshots.
+- Add focused tests near the changed behavior rather than broad snapshots.
 
 ## Rust Code Style
-### Structure
-- Keep `src-tauri/src/main.rs` thin; put real logic in `src-tauri/src/lib.rs`.
-- Group related request structs, response structs, and helpers together.
-- Prefer small helper functions for serialization, normalization, and DB access.
 
-### Formatting and Naming
+### Structure
+
+- Keep `src-tauri/src/main.rs` thin; put core logic in `src-tauri/src/lib.rs`.
+- Group related request structs, response structs, and helpers together.
+- Prefer small helpers for normalization, serialization, and DB access.
+
+### Formatting And Naming
+
 - Follow `cargo fmt` output exactly.
-- Functions and variables: `snake_case`.
-- Structs and enums: `PascalCase`.
-- Constants: `SCREAMING_SNAKE_CASE`.
+- Functions and variables: `snake_case`
+- Structs and enums: `PascalCase`
+- Constants: `SCREAMING_SNAKE_CASE`
 
 ### Error Handling
+
 - Return `Result<_, ApiError>` from fallible request-handling paths.
-- Use shared constructors like `ApiError::bad_request` and `ApiError::internal`.
+- Use shared constructors such as `ApiError::bad_request` and `ApiError::internal`.
 - Convert lower-level errors with `map_err(...)` instead of panicking.
 - Reserve `expect(...)` for tests or unrecoverable startup failures.
 
-### Database and API Behavior
+### Database And API Behavior
+
 - Keep SQL explicit and readable.
 - Preserve Telegram-style envelope shapes and error wording when touching the simulator API.
-- Reuse existing normalization and serialization helpers before introducing new response paths.
+- Reuse existing normalization and serialization helpers before adding new response paths.
 
 ### Rust Testing
+
 - Rust tests live at the bottom of `src-tauri/src/lib.rs` under `#[cfg(test)]`.
 - Prefer focused tests that cover one queue, state transition, or API behavior.
-- Use `AppState::in_memory(...)` when possible for isolated tests.
+- Use `AppState::in_memory(...)` where possible for isolated tests.
 
 ## Agent Notes
-- This repo may have unrelated uncommitted changes; do not revert work you did not create.
-- When touching both UI and Rust, keep the contract between the frontend and local simulator consistent.
-- If you add scripts, tests, or repo rules, update this file so future agents inherit the new workflow.
+
+- The worktree may contain unrelated user changes; do not revert work you did not create.
+- When asked to commit, stage only the files relevant to the requested task unless the user explicitly asks for everything.
+- Check whether touched files need formatting before committing.
+- Prefer concise commit messages that explain the purpose of the change.

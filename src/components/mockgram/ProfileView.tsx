@@ -1,7 +1,16 @@
 import { Chat } from "@/data/mockData";
 import { ChatAvatar } from "./Avatar";
 import { ChatTitle } from "./ChatTitle";
-import { AtSign, BellOff, ChevronLeft, Info, MessageCircle, MoreHorizontal, QrCode, Search } from "lucide-react";
+import {
+  AtSign,
+  BellOff,
+  ChevronLeft,
+  Info,
+  MessageCircle,
+  MoreHorizontal,
+  QrCode,
+  Search,
+} from "lucide-react";
 
 interface ProfileViewProps {
   chat: Chat;
@@ -22,11 +31,18 @@ function InfoRow({
   className?: string;
 }) {
   return (
-    <div className={className ?? "flex items-center gap-4 px-6 py-3 hover:bg-secondary/50 transition"}>
+    <div
+      className={
+        className ??
+        "flex items-center gap-4 px-6 py-3 hover:bg-secondary/50 transition"
+      }
+    >
       <Icon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
       <div className="flex-1 min-w-0">
         <p className="text-sm text-foreground">{label}</p>
-        {sublabel && <p className="text-xs text-muted-foreground">{sublabel}</p>}
+        {sublabel && (
+          <p className="text-xs text-muted-foreground">{sublabel}</p>
+        )}
       </div>
       {trailing}
     </div>
@@ -45,7 +61,13 @@ function ActionButton({
   className?: string;
 }) {
   return (
-    <button onClick={onClick} className={className ?? "flex-1 flex flex-col items-center gap-1.5 py-3 rounded-lg hover:bg-secondary/50 transition text-muted-foreground hover:text-foreground"}>
+    <button
+      onClick={onClick}
+      className={
+        className ??
+        "flex-1 flex flex-col items-center gap-1.5 py-3 rounded-lg hover:bg-secondary/50 transition text-muted-foreground hover:text-foreground"
+      }
+    >
       <Icon className="h-5 w-5" />
       <span className="text-xs">{label}</span>
     </button>
@@ -54,7 +76,7 @@ function ActionButton({
 
 function IdGlyph() {
   return (
-    <span className="flex h-5 w-8 items-center justify-center rounded-md border border-muted-foreground/40 text-[10px] font-semibold tracking-[0.2em] text-muted-foreground">
+    <span className="flex h-5 w-8 items-center justify-center rounded-md border border-white/30 text-[10px] font-semibold tracking-[0.2em] text-white/75">
       ID
     </span>
   );
@@ -76,10 +98,6 @@ function getProfileSubtitle(chat: Chat) {
   return "bot";
 }
 
-function getIdLabel(chat: Chat) {
-  return chat.type === "private" ? "Bot ID" : "Chat ID";
-}
-
 function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
   const isBotFather = chat.id === "chat-botfather";
 
@@ -88,7 +106,10 @@ function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
       <div className="min-h-full bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_42%),linear-gradient(180deg,_#4a4643_0%,_#3b3633_38%,_#2c2825_64%)]">
         <div className="mx-auto w-full max-w-6xl px-5 pb-6 pt-5 sm:px-10">
           <div className="flex h-12 items-center">
-            <button onClick={onBack} className="rounded-full p-2 text-foreground/90 transition hover:bg-white/5">
+            <button
+              onClick={onBack}
+              className="rounded-full p-2 text-foreground/90 transition hover:bg-white/5"
+            >
               <ChevronLeft className="h-6 w-6" />
             </button>
           </div>
@@ -103,8 +124,14 @@ function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
             <ChatTitle
               title={chat.title}
               verified={chat.verified}
-              className={isBotFather ? "mt-4 items-center text-[2.2rem] font-semibold leading-none text-white" : "mt-4 items-center text-[1.9rem] font-semibold leading-none text-white"}
-              badgeClassName={isBotFather ? "mt-0.5 h-5 w-5" : "mt-0.5 h-[18px] w-[18px]"}
+              className={
+                isBotFather
+                  ? "mt-4 items-center text-[2.2rem] font-semibold leading-none text-white"
+                  : "mt-4 items-center text-[1.9rem] font-semibold leading-none text-white"
+              }
+              badgeClassName={
+                isBotFather ? "mt-0.5 h-5 w-5" : "mt-0.5 h-[18px] w-[18px]"
+              }
             />
             <p className="mt-1 text-lg text-white/70">
               {getProfileSubtitle(chat)}
@@ -156,7 +183,6 @@ function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
             <InfoRow
               icon={IdGlyph}
               label={chat.profileId ?? chat.id}
-              sublabel={getIdLabel(chat)}
               className="flex items-center gap-4 rounded-md bg-[#3d3734] px-4 py-3 text-left"
             />
           </div>
