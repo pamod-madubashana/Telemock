@@ -80,7 +80,7 @@ export function MessageBubble({
 }: MessageBubbleProps) {
   if (message.type === "system") {
     return (
-      <div className="animate-message-in flex justify-center my-2">
+      <div className="flex justify-center my-2">
         <span className="text-xs px-3 py-1 rounded-full bg-bubble-system text-bubble-system-foreground">
           {message.text}
         </span>
@@ -93,8 +93,7 @@ export function MessageBubble({
   return (
     <div
       className={cn(
-        "animate-message-in mb-1.5 flex",
-        isOwnMessage ? "animate-message-in-right" : "animate-message-in-left",
+        "mb-1.5 flex",
         isOwnMessage ? "justify-end" : "justify-start",
       )}
     >

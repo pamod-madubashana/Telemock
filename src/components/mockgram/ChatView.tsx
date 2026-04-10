@@ -54,7 +54,10 @@ export function ChatView({
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages]);
 
@@ -106,7 +109,7 @@ export function ChatView({
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3"
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3 scroll-smooth"
       >
         <div className="w-full">
           {messages.map((msg) => (
