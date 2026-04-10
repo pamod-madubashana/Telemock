@@ -90,7 +90,7 @@ function CopyableCode({ text }: { text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex max-w-full rounded-md bg-black/20 px-1.5 py-0.5 text-left font-mono text-[12.5px] text-foreground transition hover:bg-black/30 whitespace-pre-wrap break-all"
+      className="inline max-w-full bg-transparent p-0 text-left font-mono text-[12.5px] text-[#9db2d0] transition-colors duration-200 hover:bg-transparent hover:text-[#c7dbff] hover:drop-shadow-[0_0_6px_rgba(120,180,255,0.45)] whitespace-pre-wrap break-all"
       title={copied ? "Copied" : "Click to copy"}
     >
       {text}
