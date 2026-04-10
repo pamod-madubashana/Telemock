@@ -1,78 +1,67 @@
-# Telemock
+<div align="center">
+  <h1>Telemock</h1>
+  <img src="src-tauri/icons/icon.png" alt="Telemock icon" width="200" height="200" />
+  <p><strong>An offline Telegram Bot API simulator with a Telegram-like UI for local bot testing.</strong></p>
+</div>
 
-Telemock is a local Telegram Bot API simulator with a Telegram-style desktop UI.
+---
 
-It starts a Rust HTTP server on `http://127.0.0.1:8081` and exposes a React chat client inside the Tauri app.
+## Overview
 
-## API surface
+Telemock is a local-first Telegram Bot API simulator built for bot development and testing without using real Telegram servers. It aims to provide a Telegram-like desktop experience, mock chats, and a Bot API-compatible backend so bot code can run locally with minimal changes before production.
 
-- Every official Bot API method name from `https://core.telegram.org/bots/api` is recognized through `http://127.0.0.1:8081/bot<TOKEN>/<METHOD>`
-- Method matching is case-insensitive, like the official Bot API
-- `GET`, `POST`, JSON bodies, and form-encoded requests are accepted on the Bot API routes
-- Internal UI endpoints at `http://127.0.0.1:8081/internal/*`
+## Features
 
-## Currently simulated
+- Offline Telegram Bot API simulation
+- Telegram Desktop-like testing UI
+- Mock private, group, and channel chats
+- Local update generation for bot testing
+- Compatible testing flow for libraries like `python-telegram-bot`
+- Minimal production switch by changing the API base URL
 
-- `getMe`
-- `getUpdates`
-- `sendMessage`
-- `setWebhook`
-- `deleteWebhook`
-- `getWebhookInfo`
-- `logOut`
-- `close`
-- `setMyName`
-- `getMyName`
-- `setMyDescription`
-- `getMyDescription`
-- `setMyShortDescription`
-- `getMyShortDescription`
-- `setMyCommands`
-- `getMyCommands`
-- `deleteMyCommands`
+## Planned Structure
 
-All remaining official methods currently return a structured Bot API error response with `ok: false` and `error_code: 501`, which keeps the external route surface complete while deeper simulation is being added.
+- **Frontend:** Telegram-like desktop UI
+- **Backend:** Local Bot API simulator
+- **Storage:** Local state for chats, messages, updates, and bot data
 
-The simulator persists bot profiles, localized profile metadata, commands, messages, webhook settings, and queued updates in SQLite.
+## Main Goal
 
-## Local chats
+Make bot code think it is talking to a real local Telegram Bot API server, while keeping everything fully offline and developer-friendly.
 
-- Private chat with `User`
-- Group chat: `Neighborhood Lab`
-- Channel preview: `Mock Broadcast`
+## Use Cases
 
-Messages sent from the UI create updates for the selected bot token. Messages sent through `sendMessage` appear in the UI without creating inbound updates.
+- Test bot commands locally
+- Simulate updates without real Telegram data
+- Develop and debug bots faster
+- Build bot workflows before deploying to production
 
-## Run it
+## Status
 
-```bash
-npm install
-npm run tauri dev
-```
+Telemock is currently in active development.
 
-The Tauri window launches the UI and starts the local Bot API server automatically.
+## Long-Term Vision
 
-## python-telegram-bot example
+- Full Bot API method coverage
+- Better behavioral parity with Telegram Bot API
+- Rich local chat simulation
+- Media, callbacks, webhooks, and more advanced testing flows
 
-```python
-from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters
+## Development Philosophy
 
-app = ApplicationBuilder() \
-    .token("123:ABC") \
-    .base_url("http://127.0.0.1:8081/bot") \
-    .build()
+Telemock focuses on:
 
-async def handle(update: Update, context):
-    await update.message.reply_text("Hello from bot")
+- API compatibility first
+- clean local testing workflow
+- minimal changes between local and production environments
 
-app.add_handler(MessageHandler(filters.TEXT, handle))
-app.run_polling()
-```
+## Production Switching
 
-To switch to production, change only the `base_url`.
+The goal is to keep the transition simple:
 
-## Verification
+- **Local:** Telemock base URL
+- **Production:** Official Telegram Bot API base URL
 
-- Frontend build: `npm run build`
-- Backend tests: `cargo test --manifest-path src-tauri/Cargo.toml`
+## License
+
+This project is licensed under the MIT License.

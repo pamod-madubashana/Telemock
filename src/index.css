@@ -1,0 +1,127 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 10% 14%;
+    --foreground: 210 20% 92%;
+
+    --card: 210 10% 17%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 210 10% 17%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 200 75% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 10% 20%;
+    --secondary-foreground: 210 15% 75%;
+
+    --muted: 210 10% 20%;
+    --muted-foreground: 210 10% 55%;
+
+    --accent: 200 75% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 8% 22%;
+    --input: 210 8% 22%;
+    --ring: 200 75% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-bg: 210 10% 15%;
+    --sidebar-hover: 210 10% 20%;
+    --sidebar-active: 200 50% 20%;
+    --sidebar-width: 320px;
+    --right-panel-width: 300px;
+
+    --bubble-outgoing: 200 60% 28%;
+    --bubble-outgoing-foreground: 210 20% 95%;
+    --bubble-incoming: 210 10% 21%;
+    --bubble-incoming-foreground: 210 20% 92%;
+    --bubble-system: 210 10% 18%;
+    --bubble-system-foreground: 210 10% 55%;
+
+    --chat-bg: 210 10% 12%;
+    --composer-bg: 210 10% 17%;
+
+    --badge-bg: 200 75% 50%;
+    --badge-foreground: 0 0% 100%;
+
+    --online: 142 70% 45%;
+    --timestamp: 210 10% 50%;
+
+    --sidebar-background: 210 10% 15%;
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-primary: 200 75% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 10% 20%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 210 8% 22%;
+    --sidebar-ring: 200 75% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+}
+
+@layer utilities {
+  .animate-panel-enter {
+    animation: panel-enter 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 3px;
+  }
+}
+
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(16px, 0, 0) scale(0.992);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-panel-enter {
+    animation: none;
+  }
+}
