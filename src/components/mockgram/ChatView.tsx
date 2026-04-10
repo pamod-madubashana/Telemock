@@ -39,8 +39,8 @@ const botFatherCommands: BotCommand[] = [
 
 function MockBotIntro({ onStart }: { onStart: () => void }) {
   return (
-    <div className="flex h-full flex-col justify-end pb-6">
-      <div className="mx-auto mb-6 w-full max-w-sm rounded-2xl border border-white/10 bg-[#1f2937]/92 p-4 text-sm text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
+    <div className="flex h-full flex-col justify-end">
+      <div className="mx-auto mb-[18rem] w-full max-w-sm rounded-2xl border border-white/10 bg-[#1f2937]/92 p-4 text-sm text-foreground shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
         <p className="text-base font-semibold text-white">
           What can this bot do?
         </p>
