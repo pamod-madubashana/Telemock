@@ -6,31 +6,34 @@ import { MessageComposer, BotCommand } from "./MessageComposer";
 import { MessageSquare } from "lucide-react";
 
 const botFatherCommands: BotCommand[] = [
-  { command: 'newbot', description: 'create a new bot' },
-  { command: 'mybots', description: 'edit your bots' },
-  { command: 'setname', description: "change a bot's name" },
-  { command: 'setdescription', description: 'change bot description' },
-  { command: 'setabouttext', description: 'change bot about info' },
-  { command: 'setuserpic', description: 'change bot profile photo' },
-  { command: 'setcommands', description: 'change the list of commands' },
-  { command: 'deletebot', description: 'delete a bot' },
-  { command: 'token', description: 'get authorization token' },
-  { command: 'revoke', description: 'revoke bot access token' },
-  { command: 'setinline', description: 'toggle inline mode' },
-  { command: 'setinlinegeo', description: 'toggle inline location requests' },
-  { command: 'setinlinefeedback', description: 'change inline feedback settings' },
-  { command: 'setjoingroups', description: 'can your bot be added to groups?' },
-  { command: 'setprivacy', description: 'toggle privacy mode in groups' },
-  { command: 'myapps', description: 'edit your web apps' },
-  { command: 'newapp', description: 'create a new web app' },
-  { command: 'listapps', description: 'get a list of your web apps' },
-  { command: 'editapp', description: 'edit a web app' },
-  { command: 'deleteapp', description: 'delete an existing web app' },
-  { command: 'mygames', description: 'edit your games' },
-  { command: 'newgame', description: 'create a new game' },
-  { command: 'listgames', description: 'get a list of your games' },
-  { command: 'editgame', description: 'edit a game' },
-  { command: 'deletegame', description: 'delete an existing game' },
+  { command: "newbot", description: "create a new bot" },
+  { command: "mybots", description: "edit your bots" },
+  { command: "setname", description: "change a bot's name" },
+  { command: "setdescription", description: "change bot description" },
+  { command: "setabouttext", description: "change bot about info" },
+  { command: "setuserpic", description: "change bot profile photo" },
+  { command: "setcommands", description: "change the list of commands" },
+  { command: "deletebot", description: "delete a bot" },
+  { command: "token", description: "get authorization token" },
+  { command: "revoke", description: "revoke bot access token" },
+  { command: "setinline", description: "toggle inline mode" },
+  { command: "setinlinegeo", description: "toggle inline location requests" },
+  {
+    command: "setinlinefeedback",
+    description: "change inline feedback settings",
+  },
+  { command: "setjoingroups", description: "can your bot be added to groups?" },
+  { command: "setprivacy", description: "toggle privacy mode in groups" },
+  { command: "myapps", description: "edit your web apps" },
+  { command: "newapp", description: "create a new web app" },
+  { command: "listapps", description: "get a list of your web apps" },
+  { command: "editapp", description: "edit a web app" },
+  { command: "deleteapp", description: "delete an existing web app" },
+  { command: "mygames", description: "edit your games" },
+  { command: "newgame", description: "create a new game" },
+  { command: "listgames", description: "get a list of your games" },
+  { command: "editgame", description: "edit a game" },
+  { command: "deletegame", description: "delete an existing game" },
 ];
 
 interface ChatViewProps {
@@ -40,7 +43,12 @@ interface ChatViewProps {
   onOpenProfile: () => void;
 }
 
-export function ChatView({ chat, messages, onSend, onOpenProfile }: ChatViewProps) {
+export function ChatView({
+  chat,
+  messages,
+  onSend,
+  onOpenProfile,
+}: ChatViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,8 +67,8 @@ export function ChatView({ chat, messages, onSend, onOpenProfile }: ChatViewProp
     );
   }
 
-  const isGroup = chat.type === 'group';
-  const isChannel = chat.type === 'channel';
+  const isGroup = chat.type === "group";
+  const isChannel = chat.type === "channel";
 
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-chat-bg">
@@ -69,23 +77,38 @@ export function ChatView({ chat, messages, onSend, onOpenProfile }: ChatViewProp
         onClick={onOpenProfile}
         className="h-14 px-4 flex items-center gap-3 bg-card border-b border-border flex-shrink-0 w-full text-left hover:bg-secondary/30 transition cursor-pointer"
       >
-        <ChatAvatar initials={chat.initials} color={chat.color} size="sm" online={chat.online} />
+        <ChatAvatar
+          initials={chat.initials}
+          color={chat.color}
+          size="sm"
+          online={chat.online}
+        />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">{chat.title}</p>
+          <p className="text-sm font-semibold text-foreground truncate">
+            {chat.title}
+          </p>
           <p className="text-xs text-muted-foreground">
-            {chat.subtitle || (isChannel ? `${chat.members} subscribers` : isGroup ? `${chat.members} members` : 'bot')}
+            {chat.subtitle ||
+              (isChannel
+                ? `${chat.members} subscribers`
+                : isGroup
+                  ? `${chat.members} members`
+                  : "bot")}
           </p>
         </div>
       </button>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3">
-        <div className="max-w-2xl mx-auto">
-          {messages.map(msg => (
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3"
+      >
+        <div className="w-full">
+          {messages.map((msg) => (
             <MessageBubble
               key={msg.id}
               message={msg}
-              isOwnMessage={msg.senderId === 'user-1'}
+              isOwnMessage={msg.senderId === "user-1"}
               showSender={isGroup || isChannel}
               onCommandClick={(cmd) => onSend(cmd)}
             />
@@ -97,7 +120,9 @@ export function ChatView({ chat, messages, onSend, onOpenProfile }: ChatViewProp
       {!isChannel && (
         <MessageComposer
           onSend={onSend}
-          commands={chat.id === 'chat-botfather' ? botFatherCommands : undefined}
+          commands={
+            chat.id === "chat-botfather" ? botFatherCommands : undefined
+          }
         />
       )}
     </div>
