@@ -150,7 +150,7 @@ export function ChatView({
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3 scroll-smooth"
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3"
       >
         {showMockBotIntro ? (
           <MockBotIntro onStart={() => onSend("/start")} />
