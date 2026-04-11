@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   chats as initialChats,
   messages as initialMessages,
+  currentUser,
   Message,
   BotFatherState,
   CreatedBot,
@@ -57,6 +58,36 @@ function formatSimulatorTime(unixSeconds: number): string {
   });
 }
 
+function stripMessageMarkup(text: string): string {
+  return text
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function formatSidebarPreview(chatId: string, message: Message): string {
+  const plainText = stripMessageMarkup(message.text);
+
+  if (message.type === "system") {
+    return plainText;
+  }
+
+  if (message.senderId === currentUser.id) {
+    return `You: ${plainText}`;
+  }
+
+  if (chatId === "chat-2" && message.senderId === "user-2") {
+    return `Alice: ${plainText}`;
+  }
+
+  if (chatId === "chat-2" && message.senderId === "user-3") {
+    return `Bob: ${plainText}`;
+  }
+
+  return plainText;
+}
+
 function mapSimulatorMessage(
   chatId: string,
   message: InternalChatMessage,
@@ -97,7 +128,25 @@ const Index = () => {
     },
   ]);
 
-  const activeChat = initialChats.find((c) => c.id === activeChatId) || null;
+  const chats = useMemo(
+    () =>
+      initialChats.map((chat) => {
+        const lastMessage = allMessages[chat.id]?.at(-1);
+
+        if (!lastMessage) {
+          return chat;
+        }
+
+        return {
+          ...chat,
+          lastMessage: formatSidebarPreview(chat.id, lastMessage),
+          lastMessageTime: lastMessage.timestamp,
+        };
+      }),
+    [allMessages],
+  );
+
+  const activeChat = chats.find((c) => c.id === activeChatId) || null;
   const currentMessages = activeChatId ? allMessages[activeChatId] || [] : [];
   const panelKey = showProfile
     ? `profile-${activeChat?.id ?? "none"}`
@@ -326,7 +375,7 @@ const Index = () => {
   return (
     <div className="h-screen flex overflow-hidden">
       <Sidebar
-        chats={initialChats}
+        chats={chats}
         activeChatId={activeChatId}
         onSelectChat={handleSelectChat}
         unreadCounts={unreadCounts}
