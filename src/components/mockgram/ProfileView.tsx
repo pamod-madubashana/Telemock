@@ -106,7 +106,7 @@ function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
   return (
     <div className="flex-1 min-w-0 overflow-y-auto bg-[#2c2825] scrollbar-thin">
       <div className="min-h-full bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_42%),linear-gradient(180deg,_#4a4643_0%,_#3b3633_38%,_#2c2825_64%)]">
-        <div className="mx-auto w-full max-w-6xl px-5 pb-6 pt-5 sm:px-10">
+        <div className="mx-auto w-full max-w-5xl px-5 pb-6 pt-4 sm:px-9">
           <div className="flex h-12 items-center">
             <button
               onClick={onBack}
@@ -116,26 +116,27 @@ function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
             </button>
           </div>
 
-          <div className="flex flex-col items-center px-4 pb-7 pt-2 text-center">
+          <div className="flex flex-col items-center px-4 pb-6 pt-1 text-center">
             <ChatAvatar
               initials={chat.initials}
               color={chat.color}
               avatar={chat.avatar}
               size={isBotFather ? "xl" : "lg"}
+              className={isBotFather ? "scale-[0.88]" : "scale-95"}
             />
             <ChatTitle
               title={chat.title}
               verified={chat.verified}
               className={
                 isBotFather
-                  ? "mt-4 items-center text-[2.2rem] font-semibold leading-none text-white"
-                  : "mt-4 items-center text-[1.9rem] font-semibold leading-none text-white"
+                  ? "mt-3 items-center text-[1.95rem] font-semibold leading-none text-white"
+                  : "mt-3 items-center text-[1.7rem] font-semibold leading-none text-white"
               }
               badgeClassName={
-                isBotFather ? "mt-0.5 h-5 w-5" : "mt-0.5 h-[18px] w-[18px]"
+                isBotFather ? "mt-0.5 h-[18px] w-[18px]" : "mt-0.5 h-4 w-4"
               }
             />
-            <p className="mt-1 text-lg text-white/70">
+            <p className="mt-1 text-base text-white/70">
               {getProfileSubtitle(chat)}
             </p>
           </div>
@@ -145,22 +146,22 @@ function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
               icon={MessageCircle}
               label="Open Chat"
               onClick={onBack}
-              className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
+              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
             />
             <ActionButton
               icon={Search}
               label="Search"
-              className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
+              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
             />
             <ActionButton
               icon={BellOff}
               label="Mute"
-              className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
+              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
             />
             <ActionButton
               icon={MoreHorizontal}
               label="More"
-              className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
+              className="flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
             />
           </div>
 
