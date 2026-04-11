@@ -83,17 +83,34 @@ export function ChatView({
   const scrollRef = useRef<HTMLDivElement>(null);
   const previousChatIdRef = useRef<string | null>(null);
   const previousMessageCountRef = useRef(0);
+  const shouldStickToBottomRef = useRef(true);
+
+  const updateStickToBottom = () => {
+    if (!scrollRef.current) {
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    shouldStickToBottomRef.current =
+      scrollHeight - scrollTop - clientHeight < 72;
+  };
 
   useEffect(() => {
     if (scrollRef.current && chat) {
       const isNewChat = previousChatIdRef.current !== chat.id;
       const previousCount = previousMessageCountRef.current;
       const nextCount = messages.length;
+      const shouldAutoScroll =
+        isNewChat ||
+        (nextCount > previousCount && shouldStickToBottomRef.current);
 
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: !isNewChat && nextCount > previousCount ? "smooth" : "auto",
-      });
+      if (shouldAutoScroll) {
+        scrollRef.current.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: !isNewChat && nextCount > previousCount ? "smooth" : "auto",
+        });
+        shouldStickToBottomRef.current = true;
+      }
 
       previousChatIdRef.current = chat.id;
       previousMessageCountRef.current = nextCount;
@@ -150,6 +167,7 @@ export function ChatView({
       {/* Messages */}
       <div
         ref={scrollRef}
+        onScroll={updateStickToBottom}
         className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3"
       >
         {showMockBotIntro ? (
