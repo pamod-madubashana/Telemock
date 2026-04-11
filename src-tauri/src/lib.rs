@@ -7,11 +7,10 @@ use axum::{
     Json, Router,
 };
 use rusqlite::{params, Connection, OptionalExtension};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
 use serde_json::{json, Value};
 use std::{
     collections::BTreeMap,
-    net::SocketAddr,
     path::PathBuf,
     sync::{Arc, Mutex},
     time::{SystemTime, UNIX_EPOCH},
@@ -19,11 +18,13 @@ use std::{
 use tauri::Manager;
 use tower_http::cors::{Any, CorsLayer};
 
-const SERVER_PORT: u16 = 8081;
-const SERVER_BASE_URL: &str = "http://127.0.0.1:8081";
-const DEFAULT_TOKEN: &str = "123:ABC";
+const DEFAULT_SERVER_HOST: &str = "127.0.0.1";
+const DEFAULT_SERVER_PORT: u16 = 8443;
+#[cfg(test)]
+const DEFAULT_SERVER_BASE_URL: &str = "http://127.0.0.1:8443";
+const DEFAULT_TOKEN: &str = "8399914870:AAH3mANGZFUfqAU8kf1HvOHCNNvr-j6RagY";
 const DEFAULT_BOT_NAME: &str = "MockBot";
-const DEFAULT_BOT_USERNAME: &str = "mock_bot";
+const DEFAULT_BOT_USERNAME: &str = "mock_test_bot";
 const USER_ID: i64 = 1;
 const USER_NAME: &str = "User";
 const USER_USERNAME: &str = "local_user";
@@ -315,13 +316,16 @@ struct GetMyShortDescriptionParams {
 
 #[derive(Default, Deserialize)]
 struct SetMyCommandsParams {
+    #[serde(deserialize_with = "deserialize_bot_commands")]
     commands: Vec<BotCommand>,
+    #[serde(default, deserialize_with = "deserialize_optional_bot_command_scope")]
     scope: Option<BotCommandScope>,
     language_code: Option<String>,
 }
 
 #[derive(Default, Deserialize)]
 struct GetMyCommandsParams {
+    #[serde(default, deserialize_with = "deserialize_optional_bot_command_scope")]
     scope: Option<BotCommandScope>,
     language_code: Option<String>,
 }
@@ -872,7 +876,11 @@ impl AppState {
         Ok(BotName { name: value })
     }
 
-    fn set_my_description(&self, token: &str, params: SetMyDescriptionParams) -> Result<bool, ApiError> {
+    fn set_my_description(
+        &self,
+        token: &str,
+        params: SetMyDescriptionParams,
+    ) -> Result<bool, ApiError> {
         self.set_localized_bot_value(
             "bot_descriptions",
             token,
@@ -1018,9 +1026,12 @@ impl AppState {
             .map_err(|_| ApiError::internal("Internal Server Error: database lock poisoned"))?;
         let language_code = normalize_language_code(language_code);
 
-        let query = format!("SELECT value FROM {table_name} WHERE bot_token = ?1 AND language_code = ?2");
+        let query =
+            format!("SELECT value FROM {table_name} WHERE bot_token = ?1 AND language_code = ?2");
         let value = connection
-            .query_row(&query, params![token, language_code], |row| row.get::<_, String>(0))
+            .query_row(&query, params![token, language_code], |row| {
+                row.get::<_, String>(0)
+            })
             .optional()
             .map_err(map_sqlite_error)?;
 
@@ -1049,7 +1060,8 @@ impl AppState {
                 .execute(&query, params![token, language_code, value])
                 .map_err(map_sqlite_error)?;
         } else {
-            let query = format!("DELETE FROM {table_name} WHERE bot_token = ?1 AND language_code = ?2");
+            let query =
+                format!("DELETE FROM {table_name} WHERE bot_token = ?1 AND language_code = ?2");
             connection
                 .execute(&query, params![token, language_code])
                 .map_err(map_sqlite_error)?;
@@ -1106,7 +1118,11 @@ impl AppState {
         Ok(serialize_message(&bot, &message))
     }
 
-    fn get_updates(&self, token: &str, params: GetUpdatesParams) -> Result<Vec<TelegramUpdate>, ApiError> {
+    fn get_updates(
+        &self,
+        token: &str,
+        params: GetUpdatesParams,
+    ) -> Result<Vec<TelegramUpdate>, ApiError> {
         let bot = self.get_or_create_bot(token)?;
 
         let offset = params.offset;
@@ -1326,7 +1342,14 @@ impl AppState {
                 INSERT INTO messages (bot_token, message_id, chat_id, date, is_bot, text)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
                 ",
-                params![token, next_message_id, chat_id, timestamp, if is_bot { 1_i64 } else { 0_i64 }, text],
+                params![
+                    token,
+                    next_message_id,
+                    chat_id,
+                    timestamp,
+                    if is_bot { 1_i64 } else { 0_i64 },
+                    text
+                ],
             )
             .map_err(map_sqlite_error)?;
 
@@ -1454,7 +1477,11 @@ fn serialize_message(bot: &BotProfile, record: &MessageRecord) -> TelegramMessag
         })
     };
 
-    let sender_chat = if is_channel_post { Some(chat.clone()) } else { None };
+    let sender_chat = if is_channel_post {
+        Some(chat.clone())
+    } else {
+        None
+    };
 
     TelegramMessage {
         message_id: record.message_id,
@@ -1485,21 +1512,25 @@ fn serialize_update(bot: &BotProfile, record: UpdateRecord) -> TelegramUpdate {
 }
 
 fn token_from_segment(segment: &str) -> Result<&str, ApiError> {
-    segment.strip_prefix("bot").filter(|token| !token.is_empty()).ok_or_else(|| {
-        ApiError::bad_request("Bad Request: malformed bot path, expected /bot<TOKEN>/METHOD")
-    })
+    segment
+        .strip_prefix("bot")
+        .filter(|token| !token.is_empty())
+        .ok_or_else(|| {
+            ApiError::bad_request("Bad Request: malformed bot path, expected /bot<TOKEN>/METHOD")
+        })
 }
 
 fn token_or_default(token: Option<&str>) -> &str {
-    token.and_then(|value| {
-        let trimmed = value.trim();
-        if trimmed.is_empty() {
-            None
-        } else {
-            Some(trimmed)
-        }
-    })
-    .unwrap_or(DEFAULT_TOKEN)
+    token
+        .and_then(|value| {
+            let trimmed = value.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed)
+            }
+        })
+        .unwrap_or(DEFAULT_TOKEN)
 }
 
 fn parse_request<T: DeserializeOwned + Default>(
@@ -1515,7 +1546,9 @@ fn parse_request<T: DeserializeOwned + Default>(
 
         let parsed = if content_type.contains("application/json") {
             serde_json::from_slice(body).map_err(|error| error.to_string())
-        } else if content_type.contains("application/x-www-form-urlencoded") || content_type.is_empty() {
+        } else if content_type.contains("application/x-www-form-urlencoded")
+            || content_type.is_empty()
+        {
             serde_urlencoded::from_bytes(body)
                 .map_err(|error| error.to_string())
                 .or_else(|_| serde_json::from_slice(body).map_err(|error| error.to_string()))
@@ -1573,6 +1606,94 @@ fn normalized_optional_text(value: Option<&str>) -> Option<String> {
     })
 }
 
+fn server_host() -> String {
+    std::env::var("TELEMOCK_HOST")
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| DEFAULT_SERVER_HOST.to_string())
+}
+
+fn server_port() -> u16 {
+    std::env::var("TELEMOCK_PORT")
+        .ok()
+        .and_then(|value| value.trim().parse::<u16>().ok())
+        .filter(|value| *value != 0)
+        .unwrap_or(DEFAULT_SERVER_PORT)
+}
+
+fn server_base_url() -> String {
+    format!("http://{}:{}", server_host(), server_port())
+}
+
+fn redact_token(token: &str) -> String {
+    let mut chars = token.chars();
+    let prefix: String = chars.by_ref().take(6).collect();
+    let suffix: String = token
+        .chars()
+        .rev()
+        .take(4)
+        .collect::<String>()
+        .chars()
+        .rev()
+        .collect();
+
+    if token.len() <= 12 {
+        token.to_string()
+    } else {
+        format!("{prefix}...{suffix}")
+    }
+}
+
+fn log_server(message: impl AsRef<str>) {
+    println!("[telemock-server] {}", message.as_ref());
+}
+
+fn log_server_error(message: impl AsRef<str>) {
+    eprintln!("[telemock-server] {}", message.as_ref());
+}
+
+fn deserialize_bot_commands<'de, D>(deserializer: D) -> Result<Vec<BotCommand>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum BotCommandsField {
+        Native(Vec<BotCommand>),
+        Json(String),
+    }
+
+    match BotCommandsField::deserialize(deserializer)? {
+        BotCommandsField::Native(commands) => Ok(commands),
+        BotCommandsField::Json(value) => {
+            serde_json::from_str(&value).map_err(serde::de::Error::custom)
+        }
+    }
+}
+
+fn deserialize_optional_bot_command_scope<'de, D>(
+    deserializer: D,
+) -> Result<Option<BotCommandScope>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum ScopeField {
+        Native(BotCommandScope),
+        Json(String),
+    }
+
+    match Option::<ScopeField>::deserialize(deserializer)? {
+        None => Ok(None),
+        Some(ScopeField::Native(scope)) => Ok(Some(scope)),
+        Some(ScopeField::Json(value)) => serde_json::from_str(&value)
+            .map(Some)
+            .map_err(serde::de::Error::custom),
+    }
+}
+
 fn serialize_command_scope(scope: Option<&BotCommandScope>) -> Result<String, ApiError> {
     serde_json::to_string(scope.unwrap_or(&BotCommandScope::default()))
         .map_err(|error| ApiError::internal(format!("Internal Server Error: {error}")))
@@ -1601,6 +1722,21 @@ async fn bot_api_entry(
         ApiError::bad_request(format!("Bad Request: unknown method {method_name}"))
     })?;
     let query = raw_query.0.as_deref();
+    let content_type = headers
+        .get(CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or_default();
+    log_server(format!(
+        "api method={canonical_method} token={} content_type={} body_bytes={} query_present={}",
+        redact_token(token),
+        if content_type.is_empty() {
+            "<empty>"
+        } else {
+            content_type
+        },
+        body.len(),
+        query.is_some_and(|value| !value.is_empty())
+    ));
 
     match canonical_method {
         "getMe" => Ok(api_response(state.get_or_create_bot(token)?.as_me_user())),
@@ -1698,11 +1834,12 @@ async fn healthcheck() -> Json<ApiEnvelope<&'static str>> {
 }
 
 async fn start_server(state: AppState) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let base_url = state.base_url.clone();
     let app = Router::new()
         .route("/internal/health", get(healthcheck))
         .route("/internal/state", get(internal_state))
         .route("/internal/send", post(internal_send))
-        .route("/{bot_segment}/{method_name}", any(bot_api_entry))
+        .route("/:bot_segment/:method_name", any(bot_api_entry))
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)
@@ -1711,8 +1848,12 @@ async fn start_server(state: AppState) -> Result<(), Box<dyn std::error::Error +
         )
         .with_state(state);
 
-    let address = SocketAddr::from(([127, 0, 0, 1], SERVER_PORT));
-    let listener = tokio::net::TcpListener::bind(address).await?;
+    let host = server_host();
+    let port = server_port();
+    log_server(format!("binding local Bot API server on {host}:{port}"));
+    let listener = tokio::net::TcpListener::bind((host.as_str(), port)).await?;
+
+    log_server(format!("listening on {base_url}"));
 
     axum::serve(listener, app).await?;
 
@@ -1724,15 +1865,19 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            let data_dir = app.path().app_data_dir().unwrap_or_else(|_| {
-                std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-            });
-            let state = AppState::new(data_dir.join("telemock.sqlite3"), SERVER_BASE_URL.to_string())?;
+            let data_dir = app
+                .path()
+                .app_data_dir()
+                .unwrap_or_else(|_| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+            let base_url = server_base_url();
+            log_server(format!("preparing local Bot API server at {base_url}"));
+            let state = AppState::new(data_dir.join("telemock.sqlite3"), base_url)?;
 
             let server_state = state.clone();
             tauri::async_runtime::spawn(async move {
+                log_server("background server task started");
                 if let Err(error) = start_server(server_state).await {
-                    eprintln!("telemock server failed: {error}");
+                    log_server_error(format!("server task failed: {error}"));
                 }
             });
 
@@ -1749,7 +1894,7 @@ mod tests {
 
     #[test]
     fn user_messages_enter_and_leave_the_update_queue() {
-        let state = AppState::in_memory(SERVER_BASE_URL).expect("state");
+        let state = AppState::in_memory(DEFAULT_SERVER_BASE_URL).expect("state");
 
         state
             .send_user_message(DEFAULT_TOKEN, 1, "hello")
@@ -1792,7 +1937,7 @@ mod tests {
 
     #[test]
     fn bot_messages_are_visible_in_the_ui_snapshot() {
-        let state = AppState::in_memory(SERVER_BASE_URL).expect("state");
+        let state = AppState::in_memory(DEFAULT_SERVER_BASE_URL).expect("state");
 
         state
             .send_bot_message(DEFAULT_TOKEN, 1, "Hello from bot")

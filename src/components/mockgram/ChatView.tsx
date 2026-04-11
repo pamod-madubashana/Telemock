@@ -45,9 +45,9 @@ function MockBotIntro({ onStart }: { onStart: () => void }) {
           What can this bot do?
         </p>
         <div className="mt-2 space-y-1 text-sm leading-6 text-white/85">
-          <p>- Test commands and offline replies.</p>
+          <p>- Test commands against the local Bot API.</p>
           <p>- Preview formatted messages and links.</p>
-          <p>- Simulate bot flows before using real APIs.</p>
+          <p>- Simulate bot flows before using real Telegram.</p>
         </div>
         <p className="mt-4 text-sm leading-6 text-white/78">
           Start the bot to open the chat and begin sending commands.

@@ -1,5 +1,9 @@
 import botFatherAvatar from "@/assets/botfather.png";
 
+export const MOCK_BOT_NAME = "MockBot";
+export const MOCK_BOT_USERNAME = "mock_test_bot";
+export const MOCK_BOT_TOKEN = "8399914870:AAH3mANGZFUfqAU8kf1HvOHCNNvr-j6RagY";
+
 export interface User {
   id: string;
   name: string;
@@ -53,7 +57,7 @@ export const users: Record<string, User> = {
   "user-1": currentUser,
   "bot-1": {
     id: "bot-1",
-    name: "MockBot",
+    name: MOCK_BOT_NAME,
     isBot: true,
     initials: "MB",
     color: "hsl(200, 80%, 45%)",
@@ -105,7 +109,7 @@ export const chats: Chat[] = [
   {
     id: "chat-1",
     type: "private",
-    title: "MockBot",
+    title: MOCK_BOT_NAME,
     subtitle: "bot",
     profileId: "7814203112",
     initials: "MB",
@@ -114,8 +118,8 @@ export const chats: Chat[] = [
     lastMessageTime: "",
     unreadCount: 0,
     online: true,
-    description: "Offline bot simulator for testing Bot API interactions.",
-    username: "MockBot",
+    description: "Local Telemock bot wired to the simulated Telegram Bot API.",
+    username: MOCK_BOT_USERNAME,
   },
   {
     id: "chat-2",
@@ -217,7 +221,7 @@ export const messages: Record<string, Message[]> = {
       id: "bf8",
       chatId: "chat-botfather",
       senderId: "botfather",
-      text: "Done! Congratulations on your new bot. You will find it at t.me/mock_test_bot. You can now add a description, about section and profile picture for your bot, see /help for a list of commands.\n\nUse this token to access the HTTP API:\n<code>8399914870:AAH3mANGZFUfqAU8kf1HvOHCNNvr-j6RagY</code>\n\nKeep your token secure and store it safely, it can be used by anyone to control your bot.\n\nFor a description of the Bot API, see this page: https://core.telegram.org/bots/api",
+      text: `Done! Congratulations on your new bot. You will find it at t.me/${MOCK_BOT_USERNAME}. You can now add a description, about section and profile picture for your bot, see /help for a list of commands.\n\nUse this token to access the HTTP API:\n<code>${MOCK_BOT_TOKEN}</code>\n\nKeep your token secure and store it safely, it can be used by anyone to control your bot.\n\nFor a description of the Bot API, see this page: https://core.telegram.org/bots/api`,
       timestamp: "09:03",
       type: "text",
       read: true,
