@@ -101,7 +101,6 @@ function getProfileSubtitle(chat: Chat) {
 }
 
 function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
-  const isBotFather = chat.id === "chat-botfather";
   const panelClassName =
     "flex items-center gap-4 rounded-md bg-[#3d3734] px-4 py-2.5 text-left";
 
@@ -123,20 +122,14 @@ function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
               initials={chat.initials}
               color={chat.color}
               avatar={chat.avatar}
-              size={isBotFather ? "xl" : "lg"}
-              className={isBotFather ? "scale-[0.78]" : "scale-[0.9]"}
+              size="xl"
+              className="scale-[0.78]"
             />
             <ChatTitle
               title={chat.title}
               verified={chat.verified}
-              className={
-                isBotFather
-                  ? "mt-1.5 items-center text-[1.7rem] font-semibold leading-none text-white"
-                  : "mt-2 items-center text-[1.5rem] font-semibold leading-none text-white"
-              }
-              badgeClassName={
-                isBotFather ? "mt-0.5 h-4 w-4" : "mt-0.5 h-3.5 w-3.5"
-              }
+              className="mt-1.5 items-center text-[1.7rem] font-semibold leading-none text-white"
+              badgeClassName="mt-0.5 h-4 w-4"
             />
             <p className="mt-1 text-[15px] text-white/68">
               {getProfileSubtitle(chat)}

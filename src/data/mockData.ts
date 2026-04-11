@@ -1,4 +1,5 @@
 import botFatherAvatar from "@/assets/botfather.png";
+import appIcon from "../../src-tauri/icons/icon.png";
 
 export const MOCK_BOT_NAME = "MockBot";
 export const MOCK_BOT_USERNAME = "mock_test_bot";
@@ -69,6 +70,7 @@ export const users: Record<string, User> = {
     id: "bot-1",
     name: MOCK_BOT_NAME,
     isBot: true,
+    avatar: appIcon,
     initials: "MB",
     color: "hsl(200, 80%, 45%)",
   },
@@ -121,6 +123,7 @@ export const chats: Chat[] = [
     type: "private",
     title: MOCK_BOT_NAME,
     subtitle: "bot",
+    avatar: appIcon,
     profileId: "7814203112",
     initials: "MB",
     color: "hsl(200, 80%, 45%)",
