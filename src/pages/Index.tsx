@@ -303,6 +303,26 @@ const Index = () => {
     setUnreadCounts((prev) => ({ ...prev, [id]: 0 }));
   };
 
+  const handleMessageLinkClick = useCallback(
+    (href: string) => {
+      try {
+        const url = new URL(href);
+        const username =
+          url.hostname === "t.me" ? url.pathname.replace(/^\//, "") : "";
+
+        if (username === MOCK_BOT_USERNAME) {
+          handleSelectChat("chat-1");
+          return true;
+        }
+      } catch {
+        return false;
+      }
+
+      return false;
+    },
+    [handleSelectChat],
+  );
+
   return (
     <div className="h-screen flex overflow-hidden">
       <Sidebar
@@ -320,6 +340,7 @@ const Index = () => {
             messages={currentMessages}
             onSend={handleSend}
             onOpenProfile={() => setShowProfile(true)}
+            onLinkClick={handleMessageLinkClick}
           />
         )}
       </div>

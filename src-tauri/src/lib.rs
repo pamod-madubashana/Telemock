@@ -417,7 +417,17 @@ struct TelegramMessage {
     from: Option<TelegramUser>,
     #[serde(skip_serializing_if = "Option::is_none")]
     sender_chat: Option<TelegramChat>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    entities: Option<Vec<TelegramMessageEntity>>,
     text: String,
+}
+
+#[derive(Clone, Serialize)]
+struct TelegramMessageEntity {
+    #[serde(rename = "type")]
+    kind: String,
+    offset: usize,
+    length: usize,
 }
 
 #[derive(Serialize)]
@@ -666,6 +676,31 @@ impl AppState {
             .map_err(map_sqlite_error)?;
 
         if let Some(bot) = existing {
+            if token == DEFAULT_TOKEN
+                && (bot.first_name != DEFAULT_BOT_NAME || bot.username != DEFAULT_BOT_USERNAME)
+            {
+                connection
+                    .execute(
+                        "UPDATE bots SET first_name = ?1, username = ?2 WHERE token = ?3",
+                        params![DEFAULT_BOT_NAME, DEFAULT_BOT_USERNAME, token],
+                    )
+                    .map_err(map_sqlite_error)?;
+
+                return Ok(BotProfile {
+                    id: bot.id,
+                    first_name: DEFAULT_BOT_NAME.to_string(),
+                    username: DEFAULT_BOT_USERNAME.to_string(),
+                    can_join_groups: bot.can_join_groups,
+                    can_read_all_group_messages: bot.can_read_all_group_messages,
+                    supports_inline_queries: bot.supports_inline_queries,
+                    can_connect_to_business: bot.can_connect_to_business,
+                    has_main_web_app: bot.has_main_web_app,
+                    has_topics_enabled: bot.has_topics_enabled,
+                    allows_users_to_create_topics: bot.allows_users_to_create_topics,
+                    can_manage_bots: bot.can_manage_bots,
+                });
+            }
+
             return Ok(bot);
         }
 
@@ -1452,6 +1487,19 @@ fn serialize_chat(chat: &ChatRecord) -> TelegramChat {
     }
 }
 
+fn parse_command_entities(text: &str) -> Option<Vec<TelegramMessageEntity>> {
+    let command = text
+        .split_whitespace()
+        .next()
+        .filter(|value| value.starts_with('/'))?;
+
+    Some(vec![TelegramMessageEntity {
+        kind: "bot_command".to_string(),
+        offset: 0,
+        length: command.len(),
+    }])
+}
+
 fn serialize_message(bot: &BotProfile, record: &MessageRecord) -> TelegramMessage {
     let chat = serialize_chat(&record.chat);
     let is_channel_post = record.chat.kind == "channel" && record.is_bot;
@@ -1489,6 +1537,7 @@ fn serialize_message(bot: &BotProfile, record: &MessageRecord) -> TelegramMessag
         chat,
         from,
         sender_chat,
+        entities: parse_command_entities(&record.text),
         text: record.text.clone(),
     }
 }
@@ -1953,5 +2002,36 @@ mod tests {
         assert_eq!(private_chat.messages.len(), 1);
         assert_eq!(private_chat.messages[0].text, "Hello from bot");
         assert!(private_chat.messages[0].from.as_ref().expect("from").is_bot);
+    }
+
+    #[test]
+    fn command_updates_include_bot_command_entities() {
+        let state = AppState::in_memory(DEFAULT_SERVER_BASE_URL).expect("state");
+
+        state
+            .send_user_message(DEFAULT_TOKEN, 1, "/start")
+            .expect("user command");
+
+        let updates = state
+            .get_updates(
+                DEFAULT_TOKEN,
+                GetUpdatesParams {
+                    offset: None,
+                    limit: None,
+                    _timeout: None,
+                },
+            )
+            .expect("updates");
+
+        let message = updates[0].message.as_ref().expect("message");
+        let entity = message
+            .entities
+            .as_ref()
+            .and_then(|entities| entities.first())
+            .expect("bot command entity");
+
+        assert_eq!(entity.kind, "bot_command");
+        assert_eq!(entity.offset, 0);
+        assert_eq!(entity.length, 6);
     }
 }

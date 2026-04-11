@@ -70,6 +70,7 @@ interface ChatViewProps {
   messages: Message[];
   onSend: (text: string) => void;
   onOpenProfile: () => void;
+  onLinkClick?: (href: string) => boolean;
 }
 
 export function ChatView({
@@ -77,6 +78,7 @@ export function ChatView({
   messages,
   onSend,
   onOpenProfile,
+  onLinkClick,
 }: ChatViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -152,6 +154,7 @@ export function ChatView({
                 isOwnMessage={msg.senderId === "user-1"}
                 showSender={isGroup || isChannel}
                 onCommandClick={(cmd) => onSend(cmd)}
+                onLinkClick={onLinkClick}
               />
             ))}
           </div>
@@ -161,6 +164,7 @@ export function ChatView({
       {/* Composer */}
       {!isChannel && !showMockBotIntro && (
         <MessageComposer
+          key={chat.id}
           onSend={onSend}
           commands={
             chat.id === "chat-botfather" ? botFatherCommands : undefined

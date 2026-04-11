@@ -45,6 +45,16 @@ export interface Message {
   read?: boolean;
 }
 
+function formatBotLink(username: string) {
+  return `<a href="https://t.me/${username}">t.me/${username}</a>`;
+}
+
+function formatBotFatherSuccessMessage(username: string, token: string) {
+  return `Done! Congratulations on your new bot. You will find it at ${formatBotLink(
+    username,
+  )}. You can now add a description, about section and profile picture for your bot, see /help for a list of commands.\n\nUse this token to access the HTTP API:\n<code>${token}</code>\n\nKeep your token secure and store it safely, it can be used by anyone to control your bot.\n\nFor a description of the Bot API, see this page: <a href="https://core.telegram.org/bots/api">https://core.telegram.org/bots/api</a>`;
+}
+
 export const currentUser: User = {
   id: "user-1",
   name: "Developer",
@@ -221,7 +231,7 @@ export const messages: Record<string, Message[]> = {
       id: "bf8",
       chatId: "chat-botfather",
       senderId: "botfather",
-      text: `Done! Congratulations on your new bot. You will find it at t.me/${MOCK_BOT_USERNAME}. You can now add a description, about section and profile picture for your bot, see /help for a list of commands.\n\nUse this token to access the HTTP API:\n<code>${MOCK_BOT_TOKEN}</code>\n\nKeep your token secure and store it safely, it can be used by anyone to control your bot.\n\nFor a description of the Bot API, see this page: https://core.telegram.org/bots/api`,
+      text: formatBotFatherSuccessMessage(MOCK_BOT_USERNAME, MOCK_BOT_TOKEN),
       timestamp: "09:03",
       type: "text",
       read: true,
@@ -453,7 +463,7 @@ export function handleBotFatherMessage(
       createdAt: new Date().toISOString(),
     };
     return {
-      reply: `Done! Congratulations on your new bot. You will find it at t.me/${trimmed}. You can now add a description, about section and profile picture for your bot, see /help for a list of commands.\n\nUse this token to access the HTTP API:\n<code>${token}</code>\n\nKeep your token secure and store it safely, it can be used by anyone to control your bot.`,
+      reply: formatBotFatherSuccessMessage(trimmed, token),
       newState: "idle",
       newBot,
     };
