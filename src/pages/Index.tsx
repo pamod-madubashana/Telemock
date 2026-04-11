@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   chats as initialChats,
   messages as initialMessages,
+  Chat,
   currentUser,
   Message,
   BotFatherState,
@@ -136,6 +137,27 @@ function formatSidebarPreview(chatId: string, message: Message): string {
   return plainText;
 }
 
+function createdBotChatId(username: string): string {
+  return `chat-created-${username.toLowerCase()}`;
+}
+
+function buildCreatedBotChat(bot: CreatedBot): Chat {
+  return {
+    id: createdBotChatId(bot.username),
+    type: "private",
+    title: bot.name,
+    subtitle: "bot",
+    initials: bot.name.slice(0, 2).toUpperCase(),
+    color: "hsl(188, 72%, 44%)",
+    lastMessage: "",
+    lastMessageTime: "",
+    unreadCount: 0,
+    online: true,
+    description: `Mock bot created via BotFather for @${bot.username}.`,
+    username: bot.username,
+  };
+}
+
 function mapSimulatorMessage(
   chatId: string,
   message: InternalChatMessage,
@@ -181,23 +203,31 @@ const Index = () => {
     initialUiState.createdBots,
   );
 
-  const chats = useMemo(
-    () =>
-      initialChats.map((chat) => {
-        const lastMessage = allMessages[chat.id]?.at(-1);
+  const chats = useMemo(() => {
+    const dynamicCreatedBotChats = createdBots
+      .filter((bot) => bot.username !== MOCK_BOT_USERNAME)
+      .map((bot) => buildCreatedBotChat(bot));
 
-        if (!lastMessage) {
-          return chat;
-        }
+    const baseChats = [
+      ...initialChats.slice(0, 2),
+      ...dynamicCreatedBotChats,
+      ...initialChats.slice(2),
+    ];
 
-        return {
-          ...chat,
-          lastMessage: formatSidebarPreview(chat.id, lastMessage),
-          lastMessageTime: lastMessage.timestamp,
-        };
-      }),
-    [allMessages],
-  );
+    return baseChats.map((chat) => {
+      const lastMessage = allMessages[chat.id]?.at(-1);
+
+      if (!lastMessage) {
+        return chat;
+      }
+
+      return {
+        ...chat,
+        lastMessage: formatSidebarPreview(chat.id, lastMessage),
+        lastMessageTime: lastMessage.timestamp,
+      };
+    });
+  }, [allMessages, createdBots]);
 
   const activeChat = chats.find((c) => c.id === activeChatId) || null;
   const currentMessages = activeChatId ? allMessages[activeChatId] || [] : [];
@@ -444,8 +474,19 @@ const Index = () => {
         const username =
           url.hostname === "t.me" ? url.pathname.replace(/^\//, "") : "";
 
+        if (!username) {
+          return false;
+        }
+
         if (username === MOCK_BOT_USERNAME) {
           handleSelectChat("chat-1");
+          return true;
+        }
+
+        const createdBot = createdBots.find((bot) => bot.username === username);
+
+        if (createdBot) {
+          handleSelectChat(createdBotChatId(createdBot.username));
           return true;
         }
       } catch {
@@ -454,7 +495,7 @@ const Index = () => {
 
       return false;
     },
-    [handleSelectChat],
+    [createdBots, handleSelectChat],
   );
 
   return (
