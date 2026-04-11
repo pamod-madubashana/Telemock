@@ -1775,17 +1775,19 @@ async fn bot_api_entry(
         .get(CONTENT_TYPE)
         .and_then(|value| value.to_str().ok())
         .unwrap_or_default();
-    log_server(format!(
-        "api method={canonical_method} token={} content_type={} body_bytes={} query_present={}",
-        redact_token(token),
-        if content_type.is_empty() {
-            "<empty>"
-        } else {
-            content_type
-        },
-        body.len(),
-        query.is_some_and(|value| !value.is_empty())
-    ));
+    if canonical_method != "getUpdates" {
+        log_server(format!(
+            "api method={canonical_method} token={} content_type={} body_bytes={} query_present={}",
+            redact_token(token),
+            if content_type.is_empty() {
+                "<empty>"
+            } else {
+                content_type
+            },
+            body.len(),
+            query.is_some_and(|value| !value.is_empty())
+        ));
+    }
 
     match canonical_method {
         "getMe" => Ok(api_response(state.get_or_create_bot(token)?.as_me_user())),
