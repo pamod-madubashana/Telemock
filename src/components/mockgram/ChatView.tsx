@@ -15,6 +15,7 @@ const botFatherCommands: BotCommand[] = [
   { command: "setuserpic", description: "change bot profile photo" },
   { command: "setcommands", description: "change the list of commands" },
   { command: "deletebot", description: "delete a bot" },
+  { command: "cancel", description: "cancel the current task" },
   { command: "token", description: "get authorization token" },
   { command: "revoke", description: "revoke bot access token" },
   { command: "setinline", description: "toggle inline mode" },
