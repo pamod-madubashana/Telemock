@@ -81,13 +81,19 @@ export function ChatView({
   onLinkClick,
 }: ChatViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const previousMessageCountRef = useRef(0);
 
   useEffect(() => {
     if (scrollRef.current) {
+      const previousCount = previousMessageCountRef.current;
+      const nextCount = messages.length;
+
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
-        behavior: "smooth",
+        behavior: nextCount > previousCount ? "smooth" : "auto",
       });
+
+      previousMessageCountRef.current = nextCount;
     }
   }, [messages]);
 
