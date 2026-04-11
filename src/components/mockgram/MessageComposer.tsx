@@ -13,6 +13,8 @@ export interface BotCommand {
   description: string;
 }
 
+const FOCUS_COMPOSER_EVENT = "telemock-focus-composer";
+
 interface MessageComposerProps {
   onSend: (text: string) => void;
   commands?: BotCommand[];
@@ -46,10 +48,15 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
     const handleWindowFocus = () => {
       focusInput();
     };
+    const handleComposerFocus = () => {
+      focusInput();
+    };
 
     window.addEventListener("focus", handleWindowFocus);
+    window.addEventListener(FOCUS_COMPOSER_EVENT, handleComposerFocus);
     return () => {
       window.removeEventListener("focus", handleWindowFocus);
+      window.removeEventListener(FOCUS_COMPOSER_EVENT, handleComposerFocus);
     };
   }, [focusInput]);
 

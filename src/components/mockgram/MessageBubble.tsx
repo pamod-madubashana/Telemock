@@ -13,6 +13,8 @@ interface MessageBubbleProps {
   onLinkClick?: (href: string) => boolean;
 }
 
+const FOCUS_COMPOSER_EVENT = "telemock-focus-composer";
+
 function renderTextWithCommands(
   text: string,
   onCommandClick?: (cmd: string) => void,
@@ -29,6 +31,11 @@ function renderTextWithCommands(
           target="_blank"
           rel="noreferrer"
           className="text-primary font-medium hover:underline"
+          onMouseDown={(event) => {
+            if (onLinkClick?.(segment)) {
+              event.preventDefault();
+            }
+          }}
           onClick={(event) => {
             if (onLinkClick?.(segment)) {
               event.preventDefault();
@@ -63,9 +70,13 @@ function renderTextWithCommands(
         <span
           key={`cmd-${segmentIndex}-${matchIndex}`}
           className="cursor-pointer font-medium text-primary hover:underline"
+          onMouseDown={(event) => {
+            event.preventDefault();
+          }}
           onClick={(e) => {
             e.stopPropagation();
             onCommandClick?.(command);
+            window.dispatchEvent(new Event(FOCUS_COMPOSER_EVENT));
           }}
         >
           {command}
