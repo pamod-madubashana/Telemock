@@ -228,6 +228,13 @@ const Index = () => {
           return;
         }
 
+        if (chat.messages.length === 0) {
+          next[frontendChatId] = prev[frontendChatId]?.length
+            ? prev[frontendChatId]
+            : (initialMessages[frontendChatId] ?? []);
+          return;
+        }
+
         next[frontendChatId] = chat.messages.map((message) =>
           mapSimulatorMessage(frontendChatId, message),
         );
