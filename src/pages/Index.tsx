@@ -16,6 +16,7 @@ import { ChatView } from "@/components/mockgram/ChatView";
 import { ProfileView } from "@/components/mockgram/ProfileView";
 
 const SIMULATOR_BASE_URL = "http://127.0.0.1:8443";
+const UI_STATE_STORAGE_KEY = "telemock-ui-state-v1";
 
 const frontendChatIdBySimulatorId: Record<number, string> = {
   1: "chat-1",
@@ -49,6 +50,53 @@ interface InternalChatSnapshot {
 
 interface InternalStateSnapshot {
   chats: InternalChatSnapshot[];
+}
+
+interface PersistedUiState {
+  activeChatId: string | null;
+  allMessages: Record<string, Message[]>;
+  unreadCounts: Record<string, number>;
+  bfState: BotFatherState;
+  bfPendingName?: string;
+  createdBots: CreatedBot[];
+}
+
+function readPersistedUiState(): PersistedUiState | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(UI_STATE_STORAGE_KEY);
+
+    if (!rawValue) {
+      return null;
+    }
+
+    return JSON.parse(rawValue) as PersistedUiState;
+  } catch {
+    return null;
+  }
+}
+
+function buildDefaultUiState(): PersistedUiState {
+  return {
+    activeChatId: "chat-botfather",
+    allMessages: initialMessages,
+    unreadCounts: Object.fromEntries(
+      initialChats.map((chat) => [chat.id, chat.unreadCount]),
+    ),
+    bfState: "idle",
+    bfPendingName: undefined,
+    createdBots: [
+      {
+        name: MOCK_BOT_NAME,
+        username: MOCK_BOT_USERNAME,
+        token: MOCK_BOT_TOKEN,
+        createdAt: new Date().toISOString(),
+      },
+    ],
+  };
 }
 
 function formatSimulatorTime(unixSeconds: number): string {
@@ -106,27 +154,32 @@ function mapSimulatorMessage(
 }
 
 const Index = () => {
+  const initialUiState = useMemo(
+    () => readPersistedUiState() ?? buildDefaultUiState(),
+    [],
+  );
+
   const [activeChatId, setActiveChatId] = useState<string | null>(
-    "chat-botfather",
+    initialUiState.activeChatId,
   );
   const [showProfile, setShowProfile] = useState(false);
-  const [allMessages, setAllMessages] =
-    useState<Record<string, Message[]>>(initialMessages);
-  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>(() =>
-    Object.fromEntries(initialChats.map((c) => [c.id, c.unreadCount])),
+  const [allMessages, setAllMessages] = useState<Record<string, Message[]>>(
+    initialUiState.allMessages,
+  );
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>(
+    initialUiState.unreadCounts,
   );
 
   // BotFather state
-  const [bfState, setBfState] = useState<BotFatherState>("idle");
-  const [bfPendingName, setBfPendingName] = useState<string | undefined>();
-  const [createdBots, setCreatedBots] = useState<CreatedBot[]>([
-    {
-      name: MOCK_BOT_NAME,
-      username: MOCK_BOT_USERNAME,
-      token: MOCK_BOT_TOKEN,
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+  const [bfState, setBfState] = useState<BotFatherState>(
+    initialUiState.bfState,
+  );
+  const [bfPendingName, setBfPendingName] = useState<string | undefined>(
+    initialUiState.bfPendingName,
+  );
+  const [createdBots, setCreatedBots] = useState<CreatedBot[]>(
+    initialUiState.createdBots,
+  );
 
   const chats = useMemo(
     () =>
@@ -256,6 +309,31 @@ const Index = () => {
       window.clearInterval(intervalId);
     };
   }, [syncSimulatorState]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        UI_STATE_STORAGE_KEY,
+        JSON.stringify({
+          activeChatId,
+          allMessages,
+          unreadCounts,
+          bfState,
+          bfPendingName,
+          createdBots,
+        } satisfies PersistedUiState),
+      );
+    } catch {
+      console.error("Failed to persist Telemock UI state");
+    }
+  }, [
+    activeChatId,
+    allMessages,
+    unreadCounts,
+    bfState,
+    bfPendingName,
+    createdBots,
+  ]);
 
   const handleSend = useCallback(
     (text: string) => {
