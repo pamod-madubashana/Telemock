@@ -1,4 +1,9 @@
 import botFatherAvatar from "@/assets/botfather.png";
+import appIcon from "../../src-tauri/icons/icon.png";
+
+export const MOCK_BOT_NAME = "MockBot";
+export const MOCK_BOT_USERNAME = "mock_test_bot";
+export const MOCK_BOT_TOKEN = "8399914870:AAH3mANGZFUfqAU8kf1HvOHCNNvr-j6RagY";
 
 export interface User {
   id: string;
@@ -41,6 +46,19 @@ export interface Message {
   read?: boolean;
 }
 
+function formatBotLink(username: string) {
+  return `<a href="https://t.me/${username}">t.me/${username}</a>`;
+}
+
+function formatBotFatherSuccessMessage(username: string, token: string) {
+  return `Done! Congratulations on your new bot. You will find it at ${formatBotLink(
+    username,
+  )}. You can now add a description, about section and profile picture for your bot, see /help for a list of commands.\n\nUse this token to access the HTTP API:\n<code>${token}</code>\n\nKeep your token secure and store it safely, it can be used by anyone to control your bot.\n\nFor a description of the Bot API, see this page: <a href="https://core.telegram.org/bots/api">https://core.telegram.org/bots/api</a>`;
+}
+
+const BOTFATHER_HELP_TEXT =
+  "I can help you create and manage Mockgram bots. If you're new to the Bot API, please see the manual.\n\nYou can control me by sending these commands:\n\n/newbot — create a new bot\n/mybots — edit your bots\n/setname — change a bot's name\n/setdescription — change bot description\n/setabouttext — change bot about info\n/setuserpic — change bot profile photo\n/setcommands — change the list of commands\n/deletebot — delete a bot\n/cancel — cancel the current task\n\n/token — generate authorization token\n/revoke — revoke bot access token";
+
 export const currentUser: User = {
   id: "user-1",
   name: "Developer",
@@ -53,8 +71,9 @@ export const users: Record<string, User> = {
   "user-1": currentUser,
   "bot-1": {
     id: "bot-1",
-    name: "MockBot",
+    name: MOCK_BOT_NAME,
     isBot: true,
+    avatar: appIcon,
     initials: "MB",
     color: "hsl(200, 80%, 45%)",
   },
@@ -105,8 +124,9 @@ export const chats: Chat[] = [
   {
     id: "chat-1",
     type: "private",
-    title: "MockBot",
+    title: MOCK_BOT_NAME,
     subtitle: "bot",
+    avatar: appIcon,
     profileId: "7814203112",
     initials: "MB",
     color: "hsl(200, 80%, 45%)",
@@ -114,8 +134,8 @@ export const chats: Chat[] = [
     lastMessageTime: "",
     unreadCount: 0,
     online: true,
-    description: "Offline bot simulator for testing Bot API interactions.",
-    username: "MockBot",
+    description: "Local Telemock bot wired to the simulated Telegram Bot API.",
+    username: MOCK_BOT_USERNAME,
   },
   {
     id: "chat-2",
@@ -163,7 +183,7 @@ export const messages: Record<string, Message[]> = {
       id: "bf2",
       chatId: "chat-botfather",
       senderId: "botfather",
-      text: "I can help you create and manage Mockgram bots. If you're new to the Bot API, please see the manual.\n\nYou can control me by sending these commands:\n\n/newbot — create a new bot\n/mybots — edit your bots\n/setname — change a bot's name\n/setdescription — change bot description\n/setabouttext — change bot about info\n/setuserpic — change bot profile photo\n/setcommands — change the list of commands\n/deletebot — delete a bot\n\n/token — generate authorization token\n/revoke — revoke bot access token",
+      text: BOTFATHER_HELP_TEXT,
       timestamp: "09:00",
       type: "text",
       read: true,
@@ -217,7 +237,7 @@ export const messages: Record<string, Message[]> = {
       id: "bf8",
       chatId: "chat-botfather",
       senderId: "botfather",
-      text: "Done! Congratulations on your new bot. You will find it at t.me/mock_test_bot. You can now add a description, about section and profile picture for your bot, see /help for a list of commands.\n\nUse this token to access the HTTP API:\n<code>8399914870:AAH3mANGZFUfqAU8kf1HvOHCNNvr-j6RagY</code>\n\nKeep your token secure and store it safely, it can be used by anyone to control your bot.\n\nFor a description of the Bot API, see this page: https://core.telegram.org/bots/api",
+      text: formatBotFatherSuccessMessage(MOCK_BOT_USERNAME, MOCK_BOT_TOKEN),
       timestamp: "09:03",
       type: "text",
       read: true,
@@ -347,9 +367,19 @@ export function handleBotFatherMessage(
   // Commands always reset state
   if (trimmed === "/start" || trimmed === "/help") {
     return {
-      reply:
-        "I can help you create and manage Mockgram bots. If you're new to the Bot API, please see the manual.\n\nYou can control me by sending these commands:\n\n/newbot — create a new bot\n/mybots — edit your bots\n/setname — change a bot's name\n/setdescription — change bot description\n/deletebot — delete a bot\n\n/token — generate authorization token\n/revoke — revoke bot access token",
+      reply: BOTFATHER_HELP_TEXT,
       newState: "idle",
+    };
+  }
+
+  if (trimmed === "/cancel") {
+    return {
+      reply:
+        state === "idle"
+          ? "There is no active task to cancel. Use /newbot to start creating a bot."
+          : "Cancelled. You can start again with /newbot or use /help to see the available commands.",
+      newState: "idle",
+      pendingName: undefined,
     };
   }
 
@@ -449,7 +479,7 @@ export function handleBotFatherMessage(
       createdAt: new Date().toISOString(),
     };
     return {
-      reply: `Done! Congratulations on your new bot. You will find it at t.me/${trimmed}. You can now add a description, about section and profile picture for your bot, see /help for a list of commands.\n\nUse this token to access the HTTP API:\n<code>${token}</code>\n\nKeep your token secure and store it safely, it can be used by anyone to control your bot.`,
+      reply: formatBotFatherSuccessMessage(trimmed, token),
       newState: "idle",
       newBot,
     };

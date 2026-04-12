@@ -101,13 +101,14 @@ function getProfileSubtitle(chat: Chat) {
 }
 
 function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
-  const isBotFather = chat.id === "chat-botfather";
+  const panelClassName =
+    "flex items-center gap-4 rounded-md bg-[#3d3734] px-4 py-2.5 text-left";
 
   return (
     <div className="flex-1 min-w-0 overflow-y-auto bg-[#2c2825] scrollbar-thin">
       <div className="min-h-full bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_42%),linear-gradient(180deg,_#4a4643_0%,_#3b3633_38%,_#2c2825_64%)]">
-        <div className="mx-auto w-full max-w-6xl px-5 pb-6 pt-5 sm:px-10">
-          <div className="flex h-12 items-center">
+        <div className="mx-auto w-full max-w-6xl px-5 pb-5 pt-3 sm:px-8">
+          <div className="flex h-10 items-center">
             <button
               onClick={onBack}
               className="rounded-full p-2 text-foreground/90 transition hover:bg-white/5"
@@ -116,61 +117,56 @@ function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
             </button>
           </div>
 
-          <div className="flex flex-col items-center px-4 pb-7 pt-2 text-center">
+          <div className="flex flex-col items-center px-4 pb-4 pt-0 text-center">
             <ChatAvatar
               initials={chat.initials}
               color={chat.color}
               avatar={chat.avatar}
-              size={isBotFather ? "xl" : "lg"}
+              size="xl"
+              className="scale-[0.78]"
             />
             <ChatTitle
               title={chat.title}
               verified={chat.verified}
-              className={
-                isBotFather
-                  ? "mt-4 items-center text-[2.2rem] font-semibold leading-none text-white"
-                  : "mt-4 items-center text-[1.9rem] font-semibold leading-none text-white"
-              }
-              badgeClassName={
-                isBotFather ? "mt-0.5 h-5 w-5" : "mt-0.5 h-[18px] w-[18px]"
-              }
+              className="mt-1.5 items-center text-[1.7rem] font-semibold leading-none text-white"
+              badgeClassName="mt-0.5 h-4 w-4"
             />
-            <p className="mt-1 text-lg text-white/70">
+            <p className="mt-1 text-[15px] text-white/68">
               {getProfileSubtitle(chat)}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pb-3 sm:grid-cols-4 sm:gap-3">
+          <div className="grid grid-cols-2 gap-2 pb-2 sm:grid-cols-4 sm:gap-2.5">
             <ActionButton
               icon={MessageCircle}
               label="Open Chat"
               onClick={onBack}
-              className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
+              className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
             />
             <ActionButton
               icon={Search}
               label="Search"
-              className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
+              className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
             />
             <ActionButton
               icon={BellOff}
               label="Mute"
-              className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
+              className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
             />
             <ActionButton
               icon={MoreHorizontal}
               label="More"
-              className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
+              className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-md bg-[#433d3a] text-white transition hover:bg-[#4b4440]"
             />
           </div>
 
-          <div className="space-y-2 pt-1">
+          <div className="space-y-1.5 pt-0.5">
             {chat.description && (
               <InfoRow
                 icon={Info}
                 label={chat.description}
                 sublabel="Description"
-                className="flex items-center gap-4 rounded-md bg-[#3d3734] px-4 py-3 text-left"
+                className={panelClassName}
               />
             )}
             {chat.username && (
@@ -179,13 +175,13 @@ function ThemedProfileView({ chat, onBack }: ProfileViewProps) {
                 label={chat.username}
                 sublabel="Username"
                 trailing={<QrCode className="h-4 w-4 text-primary" />}
-                className="flex items-center gap-4 rounded-md bg-[#3d3734] px-4 py-3 text-left"
+                className={panelClassName}
               />
             )}
             <InfoRow
               icon={IdGlyph}
               label={chat.profileId ?? chat.id}
-              className="flex items-center gap-4 rounded-md bg-[#3d3734] px-4 py-3 text-left"
+              className={panelClassName}
             />
           </div>
         </div>

@@ -1,10 +1,19 @@
 import { Menu, Mic, Paperclip, Send, Smile } from "lucide-react";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
 
 export interface BotCommand {
   command: string;
   description: string;
 }
+
+const FOCUS_COMPOSER_EVENT = "telemock-focus-composer";
 
 interface MessageComposerProps {
   onSend: (text: string) => void;
@@ -17,9 +26,39 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
   const [filteredCommands, setFilteredCommands] = useState<BotCommand[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    inputRef.current?.focus();
+  const focusInput = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
   }, []);
+
+  const keepInputFocus = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      event.preventDefault();
+      focusInput();
+    },
+    [focusInput],
+  );
+
+  useEffect(() => {
+    focusInput();
+  }, [focusInput]);
+
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      focusInput();
+    };
+    const handleComposerFocus = () => {
+      focusInput();
+    };
+
+    window.addEventListener("focus", handleWindowFocus);
+    window.addEventListener(FOCUS_COMPOSER_EVENT, handleComposerFocus);
+    return () => {
+      window.removeEventListener("focus", handleWindowFocus);
+      window.removeEventListener(FOCUS_COMPOSER_EVENT, handleComposerFocus);
+    };
+  }, [focusInput]);
 
   useEffect(() => {
     if (!commands?.length) {
@@ -46,12 +85,14 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
     onSend(text.trim());
     setText("");
     setShowCommands(false);
+    focusInput();
   };
 
   const handleSelectCommand = (cmd: string) => {
     onSend("/" + cmd);
     setText("");
     setShowCommands(false);
+    focusInput();
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -66,13 +107,14 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
   const hasCommands = commands && commands.length > 0;
 
   return (
-    <div className="relative">
+    <div className="relative" onMouseDown={focusInput}>
       {/* Command menu */}
       {showCommands && filteredCommands.length > 0 && (
         <div className="absolute bottom-full left-0 right-0 bg-card border-t border-border shadow-lg max-h-64 overflow-y-auto scrollbar-thin z-50">
           {filteredCommands.map((cmd) => (
             <button
               key={cmd.command}
+              onMouseDown={keepInputFocus}
               onClick={() => handleSelectCommand(cmd.command)}
               className="w-full flex items-center gap-3 px-5 py-2.5 hover:bg-secondary/60 transition text-left"
             >
@@ -91,9 +133,11 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
         {/* Menu button */}
         {hasCommands && (
           <button
+            onMouseDown={keepInputFocus}
             onClick={() => {
               setShowCommands((prev) => !prev);
               if (!showCommands) setFilteredCommands(commands!);
+              focusInput();
             }}
             className="flex-shrink-0 px-3.5 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition"
           >
@@ -103,6 +147,7 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
 
         {/* Attach */}
         <button
+          onMouseDown={keepInputFocus}
           className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition"
           title="Attach"
         >
@@ -122,6 +167,7 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
 
         {/* Right icons */}
         <button
+          onMouseDown={keepInputFocus}
           className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition"
           title="Emoji"
         >
@@ -129,6 +175,7 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
         </button>
         {hasText ? (
           <button
+            onMouseDown={keepInputFocus}
             onClick={handleSend}
             className="flex-shrink-0 p-1.5 text-primary hover:opacity-80 transition"
             title="Send"
@@ -137,6 +184,7 @@ export function MessageComposer({ onSend, commands }: MessageComposerProps) {
           </button>
         ) : (
           <button
+            onMouseDown={keepInputFocus}
             className="flex-shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition"
             title="Voice"
           >

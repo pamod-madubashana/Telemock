@@ -15,6 +15,7 @@ const botFatherCommands: BotCommand[] = [
   { command: "setuserpic", description: "change bot profile photo" },
   { command: "setcommands", description: "change the list of commands" },
   { command: "deletebot", description: "delete a bot" },
+  { command: "cancel", description: "cancel the current task" },
   { command: "token", description: "get authorization token" },
   { command: "revoke", description: "revoke bot access token" },
   { command: "setinline", description: "toggle inline mode" },
@@ -45,9 +46,9 @@ function MockBotIntro({ onStart }: { onStart: () => void }) {
           What can this bot do?
         </p>
         <div className="mt-2 space-y-1 text-sm leading-6 text-white/85">
-          <p>- Test commands and offline replies.</p>
+          <p>- Test commands against the local Bot API.</p>
           <p>- Preview formatted messages and links.</p>
-          <p>- Simulate bot flows before using real APIs.</p>
+          <p>- Simulate bot flows before using real Telegram.</p>
         </div>
         <p className="mt-4 text-sm leading-6 text-white/78">
           Start the bot to open the chat and begin sending commands.
@@ -70,6 +71,7 @@ interface ChatViewProps {
   messages: Message[];
   onSend: (text: string) => void;
   onOpenProfile: () => void;
+  onLinkClick?: (href: string) => boolean;
 }
 
 export function ChatView({
@@ -77,17 +79,44 @@ export function ChatView({
   messages,
   onSend,
   onOpenProfile,
+  onLinkClick,
 }: ChatViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const previousChatIdRef = useRef<string | null>(null);
+  const previousMessageCountRef = useRef(0);
+  const shouldStickToBottomRef = useRef(true);
+
+  const updateStickToBottom = () => {
+    if (!scrollRef.current) {
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    shouldStickToBottomRef.current =
+      scrollHeight - scrollTop - clientHeight < 72;
+  };
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: "smooth",
-      });
+    if (scrollRef.current && chat) {
+      const isNewChat = previousChatIdRef.current !== chat.id;
+      const previousCount = previousMessageCountRef.current;
+      const nextCount = messages.length;
+      const shouldAutoScroll =
+        isNewChat ||
+        (nextCount > previousCount && shouldStickToBottomRef.current);
+
+      if (shouldAutoScroll) {
+        scrollRef.current.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: !isNewChat && nextCount > previousCount ? "smooth" : "auto",
+        });
+        shouldStickToBottomRef.current = true;
+      }
+
+      previousChatIdRef.current = chat.id;
+      previousMessageCountRef.current = nextCount;
     }
-  }, [messages]);
+  }, [chat, messages]);
 
   if (!chat) {
     return (
@@ -139,7 +168,8 @@ export function ChatView({
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3 scroll-smooth"
+        onScroll={updateStickToBottom}
+        className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3"
       >
         {showMockBotIntro ? (
           <MockBotIntro onStart={() => onSend("/start")} />
@@ -152,6 +182,7 @@ export function ChatView({
                 isOwnMessage={msg.senderId === "user-1"}
                 showSender={isGroup || isChannel}
                 onCommandClick={(cmd) => onSend(cmd)}
+                onLinkClick={onLinkClick}
               />
             ))}
           </div>
@@ -161,6 +192,7 @@ export function ChatView({
       {/* Composer */}
       {!isChannel && !showMockBotIntro && (
         <MessageComposer
+          key={chat.id}
           onSend={onSend}
           commands={
             chat.id === "chat-botfather" ? botFatherCommands : undefined

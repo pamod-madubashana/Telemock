@@ -10,11 +10,15 @@ interface MessageBubbleProps {
   isOwnMessage: boolean;
   showSender?: boolean;
   onCommandClick?: (command: string) => void;
+  onLinkClick?: (href: string) => boolean;
 }
+
+const FOCUS_COMPOSER_EVENT = "telemock-focus-composer";
 
 function renderTextWithCommands(
   text: string,
   onCommandClick?: (cmd: string) => void,
+  onLinkClick?: (href: string) => boolean,
 ) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
 
@@ -27,6 +31,17 @@ function renderTextWithCommands(
           target="_blank"
           rel="noreferrer"
           className="text-primary font-medium hover:underline"
+          onMouseDown={(event) => {
+            if (onLinkClick?.(segment)) {
+              event.preventDefault();
+            }
+          }}
+          onClick={(event) => {
+            if (onLinkClick?.(segment)) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
         >
           {segment}
         </a>
@@ -55,9 +70,13 @@ function renderTextWithCommands(
         <span
           key={`cmd-${segmentIndex}-${matchIndex}`}
           className="cursor-pointer font-medium text-primary hover:underline"
+          onMouseDown={(event) => {
+            event.preventDefault();
+          }}
           onClick={(e) => {
             e.stopPropagation();
             onCommandClick?.(command);
+            window.dispatchEvent(new Event(FOCUS_COMPOSER_EVENT));
           }}
         >
           {command}
@@ -124,11 +143,16 @@ function renderRichNode(
   node: ChildNode,
   key: string,
   onCommandClick?: (cmd: string) => void,
+  onLinkClick?: (href: string) => boolean,
 ): ReactNode {
   if (node.nodeType === Node.TEXT_NODE) {
     return (
       <Fragment key={key}>
-        {renderTextWithCommands(node.textContent ?? "", onCommandClick)}
+        {renderTextWithCommands(
+          node.textContent ?? "",
+          onCommandClick,
+          onLinkClick,
+        )}
       </Fragment>
     );
   }
@@ -140,7 +164,7 @@ function renderRichNode(
   const element = node as HTMLElement;
   const tag = element.tagName.toLowerCase();
   const children = Array.from(element.childNodes).map((child, index) =>
-    renderRichNode(child, `${key}-${index}`, onCommandClick),
+    renderRichNode(child, `${key}-${index}`, onCommandClick, onLinkClick),
   );
 
   switch (tag) {
@@ -185,6 +209,12 @@ function renderRichNode(
           target="_blank"
           rel="noreferrer"
           className="font-medium text-primary hover:underline"
+          onClick={(event) => {
+            if (onLinkClick?.(href)) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
         >
           {children.length > 0 ? children : href}
         </a>
@@ -210,9 +240,11 @@ function renderRichNode(
 function FormattedMessageText({
   text,
   onCommandClick,
+  onLinkClick,
 }: {
   text: string;
   onCommandClick?: (cmd: string) => void;
+  onLinkClick?: (href: string) => boolean;
 }) {
   const content = useMemo(() => {
     const doc = new DOMParser().parseFromString(
@@ -221,9 +253,9 @@ function FormattedMessageText({
     );
 
     return Array.from(doc.body.childNodes).map((node, index) =>
-      renderRichNode(node, `node-${index}`, onCommandClick),
+      renderRichNode(node, `node-${index}`, onCommandClick, onLinkClick),
     );
-  }, [text, onCommandClick]);
+  }, [text, onCommandClick, onLinkClick]);
 
   return <>{content}</>;
 }
@@ -233,6 +265,7 @@ export function MessageBubble({
   isOwnMessage,
   showSender,
   onCommandClick,
+  onLinkClick,
 }: MessageBubbleProps) {
   if (message.type === "system") {
     return (
@@ -288,6 +321,7 @@ export function MessageBubble({
           <FormattedMessageText
             text={message.text}
             onCommandClick={onCommandClick}
+            onLinkClick={onLinkClick}
           />
         </div>
         <div
